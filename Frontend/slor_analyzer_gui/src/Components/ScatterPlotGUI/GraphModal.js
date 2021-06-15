@@ -140,6 +140,7 @@ class GraphModal extends React.Component{
             <div class="form-group">
                 <label for="exampleFormControlSelect1">Select State</label>
                 <select class="form-control" id="exampleFormControlSelect1" onChange={this.selectStateHandler}>
+                    <option>Select State</option>
                     <option value={15}>Jharkhand</option>
                     <option value={26}>Odisha</option>
                 </select>
