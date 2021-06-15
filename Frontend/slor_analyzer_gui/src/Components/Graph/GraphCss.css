@@ -1,0 +1,33 @@
+.highchartsFigure, .highchartsDataTable table {
+    min-width: 360px; 
+    max-width: 800px;
+    margin: 1em auto;
+}
+
+.highchartsDataTable table {
+	font-family: Verdana, sans-serif;
+	border-collapse: collapse;
+	border: 1px solid #EBEBEB;
+	margin: 10px auto;
+	text-align: center;
+	width: 100%;
+	max-width: 500px;
+}
+.highchartsDataTable caption {
+    padding: 1em 0;
+    font-size: 1.2em;
+    color: #555;
+}
+.highchartsDataTable th {
+	font-weight: 600;
+    padding: 0.5em;
+}
+.highchartsDataTable td, .highchartsDataTable th, .highchartsDataTable caption {
+    padding: 0.5em;
+}
+.highchartsDataTable thead tr, .highchartsDataTable tr:nth-child(even) {
+    background: #f8f8f8;
+}
+.highchartsDataTable tr:hover {
+    background: #f1f7ff;
+}
