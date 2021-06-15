@@ -133,47 +133,6 @@ class GraphModal extends React.Component{
         })
     }
     
-    
-    
-    stateDistSelectorMenu = (
-        <form>
-            <div class="form-group">
-                <label for="exampleFormControlSelect1">Select State</label>
-                <select class="form-control" id="exampleFormControlSelect1" onChange={this.selectStateHandler}>
-                    <option>Select State</option>
-                    <option value={15}>Jharkhand</option>
-                    <option value={26}>Odisha</option>
-                </select>
-            </div>
-            <div class="form-group">
-                <label for="exampleFormControlSelect2">Select District</label>
-                <select class="form-control" id="exampleFormControlSelect2">
-                    <option>Select District</option>
-                    {this.state.filteredDistrictsAsPerState}
-                </select>
-            </div>
-            <div class="form-group">
-                <label for="exampleFormControlSelect2">Select Centre</label>
-                <select class="form-control" id="exampleFormControlSelect2">
-                <option>1</option>
-                <option>2</option>
-                <option>3</option>
-                <option>4</option>
-                <option>5</option>
-                </select>
-            </div>
-        </form>
-    )
-
-    pincodeSelectorMenu = (
-        <form>
-            <div class="form-group">
-                <label for="pincodeSelect">Type pincode</label>
-                <input type="text" class="form-control" id="pincodeSelect" placeholder="Enter a 6 digit pincode"></input>
-            </div>
-            
-        </form>
-    )
 
     tabSelectorHandler = (e) => {
         if (e.target.value === 'state_dist'){
@@ -209,6 +168,7 @@ class GraphModal extends React.Component{
                                 <div class="form-group">
                                     <label for="exampleFormControlSelect1">Select State</label>
                                     <select class="form-control" id="exampleFormControlSelect1" onChange={this.selectStateHandler}>
+                                        <option>Select State</option>
                                         <option value={15}>Jharkhand</option>
                                         <option value={26}>Odisha</option>
                                     </select>
