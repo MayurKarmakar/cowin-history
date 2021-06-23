@@ -2,7 +2,7 @@ import React from 'react'
 // import classes from './GraphCss.css'
 import Highcharts from 'highcharts';
 import HighchartsReact from 'highcharts-react-official';
-import axios from 'axios'
+import axios from 'axios';
 
 
 function formatAMPM(date) {
@@ -19,104 +19,133 @@ function formatAMPM(date) {
 
 class Graph extends React.Component{
     state = {
-        vaccineInfo: [],
+        apiData: [],
         highchartsSeries: [],
-    myChart: {
-        time: {
-            timezone: 'Asia/Kolkata'
-        },
-        chart: {
-            type: 'scatter',
-            zoomType: 'xy'
-        },
-        // title: {
-        //     text: 'Height Versus Weight of 507 Individuals by Gender'
-        // },
-        // subtitle: {
-        //     text: 'Source: Heinz  2003'
-        // },
-        credits: {
-            enabled: false
-        },
-        xAxis: {
+        centersInSelectedDisctrict: null,
+        isLoading: true,
+        myChart: {
+            time: {
+                timezone: 'Asia/Kolkata'
+            },
+            chart: {
+                type: 'scatter',
+                zoomType: 'xy'
+            },
             title: {
-                enabled: true,
-                text: 'Day'
+                text: 'Vaccination slot availability analysis.'
             },
-            type: 'datetime',
-            tickInterval: 24 * 3600 * 1000,
-            dateTimeLabelFormats: {
-                
-                // second: '%d %b %Y'
+            // subtitle: {
+            //     text: 'Source: Heinz  2003'
+            // },
+            credits: {
+                enabled: false
             },
-        },
-        yAxis: {
-            title: {
-                text: 'Time'
+            xAxis: {
+                title: {
+                    enabled: true,
+                    text: 'Day'
+                },
+                type: 'datetime',
+                tickInterval: 24 * 3600 * 1000,
+                dateTimeLabelFormats: {
+                    
+                    // second: '%d %b %Y'
+                },
             },
-            min: 0,
-            max: 24*60,
-            tickInterval: 120,
-            labels: {
-                formatter: function () {
-                    let minutes = this.value % 60
-                    let hour = this.value / 60
-                    let date = new Date(1970, 1, 1, hour, minutes, 0, 0)
-                    return formatAMPM(date)
-                }
-            }
-        },
-        plotOptions: {
-            scatter: {
-                marker: {
-                    radius: 5,
-                    states: {
-                        hover: {
-                            enabled: true,
-                            lineColor: 'rgb(100,100,100)'
-                        }
+            yAxis: {
+                title: {
+                    text: 'Time'
+                },
+                min: 0,
+                max: 24*60,
+                tickInterval: 120,
+                labels: {
+                    formatter: function () {
+                        let minutes = this.value % 60
+                        let hour = this.value / 60
+                        let date = new Date(1970, 1, 1, hour, minutes, 0, 0)
+                        return formatAMPM(date)
                     }
                 }
-            }
-        },
-        tooltip: {
-            formatter: function () {
+            },
+            plotOptions: {
+                series: {
+                    turboThreshold: 20000
+                },
+                scatter: {
+                    marker: {
+                        radius: 5,
+                        states: {
+                            hover: {
+                                enabled: true,
+                                lineColor: 'rgb(100,100,100)'
+                            }
+                        }
+                    },
+                }
+            },
+            tooltip: {
+                formatter: function () {
 
-                return `<strong>${this.point.vaccine}</strong>`+'<br/>'+`Centre Name: ${this.point.centerName}` + '<br/>' + `Dose 1: ${this.point.dose1Quantity}` + '<br/>' +`Dose 2: ${this.point.dose2Quantitiy}`
-                
-            }
-        },
-        series: []
+                    return `<strong>${this.point.vaccine}</strong><br/>Centre Name: ${this.point.centerName}<br/>Cost: ${this.point.cost} Dose 1: ${this.point.dose1Quantity} Dose 2: ${this.point.dose2Quantitiy}<br/>**Doses available on ${new Date(this.point.eventTimestampValue).getDate()}/
+                                        ${new Date(this.point.eventTimestampValue).getMonth() + 1}/${new Date(this.point.eventTimestampValue).getFullYear()}`
+                    
+                }
+            },
+            series: []
 
-        // series: [
-        //     {
-        //         name: 'covacibn',
-        //         data: [ {
-        //             x: 123123,
-        //             y: 2342343
-                
-        //         }]
-        //     },
-        //     {
-        //         name: 'covisheidl',
-        //         data: [ {
-        //             x: 123123,
-        //             y: 2342343
-                
-        //         }]
-        //     }
-        // ]
+            // series: [
+            //     {
+            //         name: 'covacibn',
+            //         data: [ {
+            //             x: 123123,
+            //             y: 2342343
+                    
+            //         }]
+            //     },
+            //     {
+            //         name: 'covisheidl',
+            //         data: [ {
+            //             x: 123123,
+            //             y: 2342343
+                    
+            //         }]
+            //     }
+            // ]
+        }
     }
-}
+    componentDidUpdate(prevProps, prevState, snapshot) {
+        if (prevState.myChart !== this.state.myChart){
+            this.setState({
+                isLoading: false
+            })
+        }
+        if (prevProps.dataObject !== this.props.dataObject){
+            this.setState({
+                apiData: this.props.dataObject
+            },()=>{
+                this.prepareDataforVisuals(this.state.apiData)
+            })
+        }
+      }
+    
 
     componentDidMount = () => {
-        let getUrl = 'http://127.0.0.1:8000/slots/slotAvailabilityEvent/'
+        let getUrl = 'http://127.0.0.1:8000/slots/slotAvailabilityEvent/ '
         axios.get(getUrl).then(res =>{
+            console.log(res.data)
             this.prepareDataforVisuals(res.data)
+            
         }).catch(err=>{
             console.log(err)
             document.write("Error Happened")
         })
+        // this.setState({
+        //     ...this.state,
+        //     apiData: this.props.dataObject
+        // }, ()=>{
+        //     this.prepareDataforVisuals(this.state.apiData)
+        // })
     }
 
     getStartOfDay = (timestamp) => {
@@ -124,20 +153,37 @@ class Graph extends React.Component{
         day.setHours(5, 30, 0, 0)
         return day.getTime()
     }
-    
     prepareDataforVisuals = (data) => {
+        console.log("prepareDataforVisuals: ", data)
         let seriesData = {}
+        let vaccine = null
+        let availableCapacityDose1 = null
+        let availableCapacityDose2 = null
+        let vaccineCost = null
+        let eventTimestamp = null
         data.forEach(item  => {
-            let {timestamp, day, time, vaccine, day_timestamp, time_timestamp, center_name, available_capacity_dose1, available_capacity_dose2} = item
+            let event_details_json = JSON.parse(item['event_details_json'])
+            // console.log("event_details_json VACCINE NAME: ", event_details_json['session'][0]['vaccine'])
+            vaccine = event_details_json['session'][0]['vaccine']
+            vaccine = event_details_json['session'][0]['vaccine']
+            // console.log("VACCINE NAME: ",vaccine)
+            availableCapacityDose1 = event_details_json['session'][0]['available_capacity_dose1']
+            availableCapacityDose2 = event_details_json['session'][0]['available_capacity_dose2']
+            vaccineCost = event_details_json['session'][0]['cost']
+            eventTimestamp = event_details_json['session'][0]['timestamp'] * 1000
+
+            let {timestamp, day, time, day_timestamp, time_timestamp, center_name} = item
             if (seriesData[vaccine] === undefined) {
                 seriesData[vaccine] = []
             }                    
 
 
             let startOfDay = this.getStartOfDay(timestamp)
-            console.log("startOfDay", startOfDay, day_timestamp)
-            seriesData[vaccine].push({x: startOfDay, day: day, y: time_timestamp, time: time, centerName: center_name, dose1Quantity: available_capacity_dose1, dose2Quantitiy: available_capacity_dose2, vaccine: vaccine})
-            console.log(seriesData)
+            // console.log("startOfDay", startOfDay, day_timestamp)
+            
+            seriesData[vaccine].push({x: startOfDay, day: day, y: time_timestamp, time: time, centerName: center_name, dose1Quantity: availableCapacityDose1, dose2Quantitiy: availableCapacityDose2, vaccine: vaccine,
+                                    eventTimestampValue: eventTimestamp, cost: vaccineCost})
+            // console.log("Series Data: ",seriesData)
         })
 
         let highchartsSeries = []
@@ -148,17 +194,32 @@ class Graph extends React.Component{
                 data: value,
             })
         })
-
-        console.log('highchartSeries', highchartsSeries)
+        // console.log('highchartSeries', highchartsSeries)
         this.setState({myChart: {series: highchartsSeries}})
     }
-    
     render () {
-        const {myChart} = this.state;
-        
+        // console.log(this.state.dataObject)
+        const {myChart} = this.state;      
         return (
             <React.Fragment>
-                <HighchartsReact highcharts = {Highcharts} options={myChart}/>
+                {this.state.isLoading?
+                    <div>
+                        <div class="spinner-border text-warning" role="status">
+                            <span class="sr-only"></span>
+                        </div>
+                        <p>Please wait, your chart is loading.</p>
+                    </div>:
+                     null
+                    }
+                {this.state.myChart?
+                <div>
+                    <HighchartsReact highcharts = {Highcharts} options={myChart}/>: 
+                </div>
+                :
+                <div class="alert alert-danger" role="alert">
+                Sorry, no data available for the selected option.
+              </div>
+              }
             </React.Fragment>
         )
     }

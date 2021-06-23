@@ -95,6 +95,9 @@ DATABASES = {
         'PASSWORD': 'Mayur_1225',
         'HOST': 'localhost',
         'PORT': '3306', 
+        'OPTIONS': {
+            'init_command': "SET session sql_mode=(SELECT REPLACE(@@sql_mode,'ONLY_FULL_GROUP_BY',''));"
+        }
     }
 }
 
