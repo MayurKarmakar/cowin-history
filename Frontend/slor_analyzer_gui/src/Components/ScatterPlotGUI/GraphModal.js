@@ -397,7 +397,7 @@ class GraphModal extends React.Component{
     componentDidMount = () => {
         document.title = 'abc'
         // })
-        let getUrl = 'http://127.0.0.1:9000/slots/slotAvailabilityEvent/ '
+        let getUrl = 'http://127.0.0.1:9000/slots/slotAvailabilityEvent/'
         axios.get(getUrl).then(res =>{
             console.log(res.data)
             // this.prepareDataforVisuals(res.data)
