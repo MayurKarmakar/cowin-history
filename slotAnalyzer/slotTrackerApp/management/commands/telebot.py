@@ -8,6 +8,7 @@ from telethon import TelegramClient, events, sync
 from datetime import  datetime
 import pytz
 import json
+import sys
 
 without_timezone = datetime(2021, 6, 17, 21, 27, 00)
 indian_timezone = pytz.timezone('Asia/Kolkata')
@@ -24,7 +25,7 @@ print("TimeZOne info: ",with_timezone.tzinfo)
 entity_object = {
     '1458101449': {'state_id': 26, 'district_id': 446},
     '1174734037': {'state_id': 26, 'district_id': 457},
-    '1871333361': {'state_id': 26, 'district_id': 458},
+    '1234268776': {'state_id': 26, 'district_id': 458},
     '1335172164': {'state_id': 26, 'district_id': 459},
     '1327841172': {'state_id': 26, 'district_id': 471},
     '1491978120': {'state_id': 26, 'district_id': 452},
@@ -257,6 +258,7 @@ def parse_data_from_message_object(message_object, entity_id):
 
 def identify_data_from_message_object(message_object, entity_id):
 
+    print("Message object: ", message_object)
     for item in message_object:
         if item.message is None:
             continue
@@ -274,7 +276,7 @@ for entity in entity_object:
 @client.on(events.NewMessage())
 async def handler(event):
     event_str = str(event)
-    print(event_str)
+    # print(event_str)
 
 
 client.run_until_disconnected()
