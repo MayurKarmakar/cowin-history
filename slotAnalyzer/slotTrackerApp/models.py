@@ -1,10 +1,10 @@
 from django.db import models
-import uuid
+# import uuid
 
 # Create your models here.
 class SlotAvailabilityEvent(models.Model):
-    # id = models.CharField(primary_key=True, max_length=40, editable=True)
-    unique_id = models.UUIDField(default=uuid.uuid4, editable=False, unique=True)
+    id = models.CharField(primary_key=True, max_length=40, editable=True)
+    # unique_id = models.UUIDField(default=uuid.uuid4, editable=False, unique=True)
     state_id = models.IntegerField(default=0)
     timestamp = models.DateTimeField()
     district_id = models.IntegerField()

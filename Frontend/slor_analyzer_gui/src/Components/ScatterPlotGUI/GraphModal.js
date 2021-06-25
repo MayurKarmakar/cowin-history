@@ -26,6 +26,7 @@ class GraphModal extends React.Component{
         selectedStateName: '',
         dateRangeArray: [],
         hasCenterWiseFilterError: true,
+        isNoDataAvailable: '',
         OdishaDistricts: [
             {'district_id': 446, 'district_name': 'Khurda'},
             {'district_id': 457, 'district_name': 'Cuttack'},
@@ -128,8 +129,12 @@ class GraphModal extends React.Component{
         let urlPath = `http://localhost:8000/slots/district_data/?district_id=${district_id}`
 
         axios.get(urlPath).then( res => {
+            res.data.length !== 0?
             this.setState({
-                collectedData: res.data
+                collectedData: res.data,
+                isNoDataAvailable: false
+            }): this.setState({
+                isNoDataAvailable: true
             })
         }).catch(err => {
             console.log(err)
@@ -158,9 +163,13 @@ class GraphModal extends React.Component{
     }
     pincodeSearchHandler = () => {
         axios.get(`http://localhost:8000/slots/pincode/?pincode=${this.state.inputPincode}`).then(res => {
-
+            res.data.length !== 0?
             this.setState({
-                collectedData: res.data
+                collectedData: res.data,
+                isNoDataAvailable: false
+            })
+            : this.setState({
+                isNoDataAvailable: true
             })
         }).catch(err => {
             console.log("ERR pincode: ",err)
@@ -173,9 +182,12 @@ class GraphModal extends React.Component{
         let urlPath = `http://localhost:8000/slots/center_name/?state_id=${selectedState}/?center_name_like=${center_name}`
 
         axios.get(urlPath).then(res=>{
+            res.data.length !== 0?
             this.setState({
-                collectedData: res.data
+                collectedData: res.data,
+                isNoDataAvailable: false
             })
+            : this.setState({isNoDataAvailable: true})
         }).catch(err =>{
             console.log(err)
         })
@@ -202,12 +214,14 @@ class GraphModal extends React.Component{
     loadOptions =async (textInput, callback) => {
         let collectedMatchedData = null
         await axios.get(`http://localhost:8000/slots/center_name?state_id=15&center_name_like=${textInput}`).then(res=>{
-            collectedMatchedData = res.data
+            res.data.length !== 0 ?
             this.setState({
-                collectedData: res.data
+                collectedData: res.data,
+                isNoDataAvailable: false
             },()=>{
                 console.log(this.state.collectedData)
             })
+            : this.setState({isNoDataAvailable: true})
         }).catch(err=>{
             console.log(err)
         })
@@ -273,14 +287,32 @@ class GraphModal extends React.Component{
     
     dateRangeDataSearchHandler = (dateRange) => {
         console.log(dateRange)
+        console.log(dateRange[0])
+        console.log(dateRange[1])
         if (dateRange.length !== 0 && dateRange.length === 2){
-            let startDate = new Date(dateRange[0]).toISOString().split('T')[0]
-            let endDate = new Date(dateRange[1]).toISOString().split('T')[1]
-            let urlPath = `http://localhost:8000/slots/date/range_filter?start_date=${startDate}&end_date=${endDate}`
+            let startDate = new Date(dateRange[0])
+            startDate.setHours(startDate.getHours()+5)
+            startDate.setMinutes(startDate.getMinutes()+30)
+            let startDateString = startDate.toISOString().split('T')[0]
+            console.log("startDateString: ", startDateString)
+            let endDate = new Date(dateRange[1])
+            endDate.setHours(endDate.getHours()+5)
+            endDate.setMinutes(endDate.getMinutes()+30)
+            let endDateString = endDate.toISOString().split('T')[0]
+            console.log("endDateString: ", endDateString)
+            console.log("endDateString: ", endDateString)
+            // let startDate = new Date(dateRange[0]).toISOString().split('T')[0]
+            // console.log(startDate)
+            // let endDate = new Date(dateRange[1]).toISOString().split('T')[0]
+            // console.log(endDate)
+            let urlPath = `http://localhost:8000/slots/date/range_filter?start_date=${startDateString}&end_date=${endDateString}`
             axios.get(urlPath).then(res=>{
+                res.data.length !== 0?
                 this.setState({
-                    collectedData: res.data
+                    collectedData: res.data,
+                    isNoDataAvailable: false
                 })
+                : this.setState({isNoDataAvailable: true})
             }).catch(err=>{
                 console.log(err)
             })
@@ -365,13 +397,22 @@ class GraphModal extends React.Component{
     componentDidMount = () => {
         document.title = 'abc'
         // })
-        this.setState({
-            activeFileterMenu: this.stateSelector,
-            stateDistTabClass: "nav-link active",
-            activeFileterTab: 'state-dist',
-            // collectedData: apiData
-            // collectedData: data
+        let getUrl = 'http://127.0.0.1:8000/slots/slotAvailabilityEvent/ '
+        axios.get(getUrl).then(res =>{
+            console.log(res.data)
+            // this.prepareDataforVisuals(res.data)
+            this.setState({
+                activeFileterMenu: this.stateSelector,
+                stateDistTabClass: "nav-link active",
+                activeFileterTab: 'state-dist',
+                // collectedData: apiData
+                collectedData: res.data
+            })   
+        }).catch(err=>{
+            console.log(err)
+            document.write("Error Happened")
         })
+        
     }
 
 
@@ -422,6 +463,7 @@ class GraphModal extends React.Component{
                                         placeholder='Select the start and end date.'
                                         onChange={this.dateRangeDataSearchHandler}
                                         showOneCalendar={true}
+                                        placement="autoVerticalEnd"
                                     />
                                 </div>
                             </div>
@@ -431,9 +473,7 @@ class GraphModal extends React.Component{
                     </div>
                     <div className='row'>
                         <div className='col-lg-12 col-sm-12 col-md-12 justify-content-between mt-5'>
-                            {this.state.collectedData.length !== 0? <ScatterGraph dataObject={this.state.collectedData} filterOnPincodeHandler={this.pincodeSearchHandler}/>: 
-                            <ScatterGraph/>
-                          }   
+                            <ScatterGraph dataObject={this.state.collectedData} isNoData={this.state.isNoDataAvailable}/>
                         </div>
                     </div>
                 </div>

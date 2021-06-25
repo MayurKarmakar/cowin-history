@@ -111,7 +111,7 @@ class DateRangeWiseFilteredDataView(viewsets.ModelViewSet):
             end_date_string = self.request.GET.get('end_date', None)
 
             if (start_date_string is not None) and (end_date_string is not None):
-                return queryset.raw("SELECT * FROM slotTrackerApp_slotavailabilityevent WHERE DATE(timestamp) BETWEEN %s AND %s", [end_date_string ,start_date_string])
+                return queryset.raw("SELECT * FROM slotTrackerApp_slotavailabilityevent WHERE DATE(timestamp)<=%s AND DATE(timestamp)>=%s", [end_date_string ,start_date_string])
                 # print(queryset)
                 # return queryset
             

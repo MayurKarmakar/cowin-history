@@ -114,32 +114,42 @@ class Graph extends React.Component{
             // ]
         }
     }
-    componentDidUpdate(prevProps, prevState, snapshot) {
-        if (prevState.myChart !== this.state.myChart){
+
+    componentDidUpdate = (prevProps, prevState, Snapshot) => {
+        if(prevProps.dataObject !== this.props.dataObject){
             this.setState({
-                isLoading: false
-            })
-        }
-        if (prevProps.dataObject !== this.props.dataObject){
-            this.setState({
-                apiData: this.props.dataObject
+                apiData: this.props.dataObject,
+                isLoading: true,
             },()=>{
                 this.prepareDataforVisuals(this.state.apiData)
             })
         }
-      }
+    }
     
 
     componentDidMount = () => {
-        let getUrl = 'http://127.0.0.1:8000/slots/slotAvailabilityEvent/ '
-        axios.get(getUrl).then(res =>{
-            console.log(res.data)
-            this.prepareDataforVisuals(res.data)
+        if(this.props.dataObject.length!==0){
+            this.setState({
+                apiData: this.props.dataObject,
+                isLoading: true
+            },()=>{
+                this.prepareDataforVisuals(this.state.apiData)
+            })
+        }else{
+            this.setState({
+                apiData: [],
+                isLoading: false
+            })
+        }
+        // let getUrl = 'http://127.0.0.1:8000/slots/slotAvailabilityEvent/ '
+        // axios.get(getUrl).then(res =>{
+        //     console.log(res.data)
+        //     this.prepareDataforVisuals(res.data)
             
-        }).catch(err=>{
-            console.log(err)
-            document.write("Error Happened")
-        })
+        // }).catch(err=>{
+        //     console.log(err)
+        //     document.write("Error Happened")
+        // })
         // this.setState({
         //     ...this.state,
         //     apiData: this.props.dataObject
@@ -195,7 +205,7 @@ class Graph extends React.Component{
             })
         })
         // console.log('highchartSeries', highchartsSeries)
-        this.setState({myChart: {series: highchartsSeries}})
+        this.setState({myChart: {series: highchartsSeries}, isLoading: false})
     }
     render () {
         // console.log(this.state.dataObject)
@@ -211,7 +221,7 @@ class Graph extends React.Component{
                     </div>:
                      null
                     }
-                {this.state.myChart?
+                {this.state.apiData.length !== 0?
                 <div>
                     <HighchartsReact highcharts = {Highcharts} options={myChart}/>: 
                 </div>
