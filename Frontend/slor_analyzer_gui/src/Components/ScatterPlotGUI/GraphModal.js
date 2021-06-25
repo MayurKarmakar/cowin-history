@@ -126,7 +126,7 @@ class GraphModal extends React.Component{
     districtDataSearchHandler = (district_id) => {
         // let districtId = this.state.selectedDistrictId
         console.log("districtDataSearchHandler fired")
-        let urlPath = `http://localhost:8000/slots/district_data/?district_id=${district_id}`
+        let urlPath = `http://localhost:9000/slots/district_data/?district_id=${district_id}`
 
         axios.get(urlPath).then( res => {
             res.data.length !== 0?
@@ -162,7 +162,7 @@ class GraphModal extends React.Component{
         })
     }
     pincodeSearchHandler = () => {
-        axios.get(`http://localhost:8000/slots/pincode/?pincode=${this.state.inputPincode}`).then(res => {
+        axios.get(`http://localhost:9000/slots/pincode/?pincode=${this.state.inputPincode}`).then(res => {
             res.data.length !== 0?
             this.setState({
                 collectedData: res.data,
@@ -179,7 +179,7 @@ class GraphModal extends React.Component{
     centerNameSearchHandler = (center_name) =>{
         let selectedState = this.state.selectedStateId
         let selectedCenterName = this.state.selectedCenterName
-        let urlPath = `http://localhost:8000/slots/center_name/?state_id=${selectedState}/?center_name_like=${center_name}`
+        let urlPath = `http://localhost:9000/slots/center_name/?state_id=${selectedState}/?center_name_like=${center_name}`
 
         axios.get(urlPath).then(res=>{
             res.data.length !== 0?
@@ -213,7 +213,7 @@ class GraphModal extends React.Component{
 
     loadOptions =async (textInput, callback) => {
         let collectedMatchedData = null
-        await axios.get(`http://localhost:8000/slots/center_name?state_id=15&center_name_like=${textInput}`).then(res=>{
+        await axios.get(`http://localhost:9000/slots/center_name?state_id=15&center_name_like=${textInput}`).then(res=>{
             res.data.length !== 0 ?
             this.setState({
                 collectedData: res.data,
@@ -305,7 +305,7 @@ class GraphModal extends React.Component{
             // console.log(startDate)
             // let endDate = new Date(dateRange[1]).toISOString().split('T')[0]
             // console.log(endDate)
-            let urlPath = `http://localhost:8000/slots/date/range_filter?start_date=${startDateString}&end_date=${endDateString}`
+            let urlPath = `http://localhost:9000/slots/date/range_filter?start_date=${startDateString}&end_date=${endDateString}`
             axios.get(urlPath).then(res=>{
                 res.data.length !== 0?
                 this.setState({
@@ -397,7 +397,7 @@ class GraphModal extends React.Component{
     componentDidMount = () => {
         document.title = 'abc'
         // })
-        let getUrl = 'http://127.0.0.1:8000/slots/slotAvailabilityEvent/ '
+        let getUrl = 'http://127.0.0.1:9000/slots/slotAvailabilityEvent/ '
         axios.get(getUrl).then(res =>{
             console.log(res.data)
             // this.prepareDataforVisuals(res.data)
