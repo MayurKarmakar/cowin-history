@@ -127,12 +127,31 @@ class Graph extends React.Component{
         }
     }
     
+    createChartTitle = () => {
+        let {stateName, districtName, centerName, pincode, searchMode} = this.props
+        let title = 'Vaccination slot availability analysis for'
+
+        if (searchMode == 'state-dist'){
+            title += ` state: ${stateName} and district: ${districtName}`
+        }else if (searchMode === 'center'){
+            title += ` state: ${stateName} and center: ${centerName}`
+        }else if (searchMode === 'pincode'){
+            title += ` pincode: ${pincode}`
+        }
+
+        return title
+    }
 
     componentDidMount = () => {
         if(this.props.dataObject.length!==0){
             this.setState({
                 apiData: this.props.dataObject,
-                isLoading: true
+                isLoading: true,
+                myChart: {
+                    title: {
+                        text: this.createChartTitle()
+                    }
+                }
             },()=>{
                 // console.log("Is loading: ",this.state.isLoading)
                 this.prepareDataforVisuals(this.state.apiData)

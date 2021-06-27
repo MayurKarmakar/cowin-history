@@ -10,13 +10,62 @@ import LoadingOverlay from 'react-loading-overlay'
 import BounceLoader from 'react-spinners/BounceLoader'
 import {startOfDay, endOfDay, addDays, subDays} from 'date-fns'
 
+
+const statesData = {"states":[{"state_id":1,"state_name":"Andaman and Nicobar Islands"},{"state_id":2,"state_name":"Andhra Pradesh"},{"state_id":3,"state_name":"Arunachal Pradesh"},{"state_id":4,"state_name":"Assam"},{"state_id":5,"state_name":"Bihar"},{"state_id":6,"state_name":"Chandigarh"},{"state_id":7,"state_name":"Chhattisgarh"},{"state_id":8,"state_name":"Dadra and Nagar Haveli"},{"state_id":37,"state_name":"Daman and Diu"},{"state_id":9,"state_name":"Delhi"},{"state_id":10,"state_name":"Goa"},{"state_id":11,"state_name":"Gujarat"},{"state_id":12,"state_name":"Haryana"},{"state_id":13,"state_name":"Himachal Pradesh"},{"state_id":14,"state_name":"Jammu and Kashmir"},{"state_id":15,"state_name":"Jharkhand"},{"state_id":16,"state_name":"Karnataka"},{"state_id":17,"state_name":"Kerala"},{"state_id":18,"state_name":"Ladakh"},{"state_id":19,"state_name":"Lakshadweep"},{"state_id":20,"state_name":"Madhya Pradesh"},{"state_id":21,"state_name":"Maharashtra"},{"state_id":22,"state_name":"Manipur"},{"state_id":23,"state_name":"Meghalaya"},{"state_id":24,"state_name":"Mizoram"},{"state_id":25,"state_name":"Nagaland"},{"state_id":26,"state_name":"Odisha"},{"state_id":27,"state_name":"Puducherry"},{"state_id":28,"state_name":"Punjab"},{"state_id":29,"state_name":"Rajasthan"},{"state_id":30,"state_name":"Sikkim"},{"state_id":31,"state_name":"Tamil Nadu"},{"state_id":32,"state_name":"Telangana"},{"state_id":33,"state_name":"Tripura"},{"state_id":34,"state_name":"Uttar Pradesh"},{"state_id":35,"state_name":"Uttarakhand"},{"state_id":36,"state_name":"West Bengal"}],"ttl":24}
+
+const jharkhandDistrictId = 15;
+const jhakhandDistrictData = {"districts":[{"district_id":242,"district_name":"Bokaro"},{"district_id":245,"district_name":"Chatra"},{"district_id":253,"district_name":"Deoghar"},{"district_id":257,"district_name":"Dhanbad"},{"district_id":258,"district_name":"Dumka"},{"district_id":247,"district_name":"East Singhbhum"},{"district_id":243,"district_name":"Garhwa"},{"district_id":256,"district_name":"Giridih"},{"district_id":262,"district_name":"Godda"},{"district_id":251,"district_name":"Gumla"},{"district_id":255,"district_name":"Hazaribagh"},{"district_id":259,"district_name":"Jamtara"},{"district_id":252,"district_name":"Khunti"},{"district_id":241,"district_name":"Koderma"},{"district_id":244,"district_name":"Latehar"},{"district_id":250,"district_name":"Lohardaga"},{"district_id":261,"district_name":"Pakur"},{"district_id":246,"district_name":"Palamu"},{"district_id":254,"district_name":"Ramgarh"},{"district_id":240,"district_name":"Ranchi"},{"district_id":260,"district_name":"Sahebganj"},{"district_id":248,"district_name":"Seraikela Kharsawan"},{"district_id":249,"district_name":"Simdega"},{"district_id":263,"district_name":"West Singhbhum"}],"ttl":24}
+
+const odishaDistrictId = 26;
+const odishaDistrictdata = {"districts":[{"district_id":445,"district_name":"Angul"},{"district_id":448,"district_name":"Balangir"},{"district_id":447,"district_name":"Balasore"},{"district_id":472,"district_name":"Bargarh"},{"district_id":454,"district_name":"Bhadrak"},{"district_id":468,"district_name":"Boudh"},{"district_id":457,"district_name":"Cuttack"},{"district_id":473,"district_name":"Deogarh"},{"district_id":458,"district_name":"Dhenkanal"},{"district_id":467,"district_name":"Gajapati"},{"district_id":449,"district_name":"Ganjam"},{"district_id":459,"district_name":"Jagatsinghpur"},{"district_id":460,"district_name":"Jajpur"},{"district_id":474,"district_name":"Jharsuguda"},{"district_id":464,"district_name":"Kalahandi"},{"district_id":450,"district_name":"Kandhamal"},{"district_id":461,"district_name":"Kendrapara"},{"district_id":455,"district_name":"Kendujhar"},{"district_id":446,"district_name":"Khurda"},{"district_id":451,"district_name":"Koraput"},{"district_id":469,"district_name":"Malkangiri"},{"district_id":456,"district_name":"Mayurbhanj"},{"district_id":470,"district_name":"Nabarangpur"},{"district_id":462,"district_name":"Nayagarh"},{"district_id":465,"district_name":"Nuapada"},{"district_id":463,"district_name":"Puri"},{"district_id":471,"district_name":"Rayagada"},{"district_id":452,"district_name":"Sambalpur"},{"district_id":466,"district_name":"Subarnapur"},{"district_id":453,"district_name":"Sundargarh"}],"ttl":24}
+
+const districtsData = {}
+
+districtsData[jharkhandDistrictId] = jhakhandDistrictData
+districtsData[odishaDistrictId] = odishaDistrictdata
+
+const createStateNameMap = () => {
+    const stateNameMap = {}
+    statesData.states.map((state) => {
+        const stateId = state['state_id']
+        const stateName = state['state_name']
+        
+        stateNameMap[stateId] = stateName
+    })
+    return stateNameMap
+}
+
+const stateNameMap = createStateNameMap()
+
+const loadStatesOptions = () => {
+    const statesOptions = Object.entries(districtsData).map(([k, v]) => {return {value: k, label: stateNameMap[k]}})
+    console.log("statesOptions", statesOptions);
+    return statesOptions;
+}
+
+const statesOptions = loadStatesOptions()
+
+const createDistrictNameMap = () => {
+    const districtNameMap = {}
+
+    Object.entries(districtsData).map(([k, v]) => {
+        v.districts.map((district) => {
+            districtNameMap[district['district_id']] = district['district_name']
+        })
+    })
+
+    return districtNameMap
+}
+
+const districtNameMap = createDistrictNameMap()
+
 class GraphModal extends React.Component{
 
     state = {
         stateDistTabClass: "nav-link",
         distCenterTabClass: "nav-link",
         pincodeTabClass: "nav-link",
-        selectedStateId: 'select',
+        selectedStateId: '',
         selectedDistrictId: '',
         inputPincode: '',
         districtList: [],
@@ -24,6 +73,7 @@ class GraphModal extends React.Component{
         activeFileterMenu: '',
         dateRange: '',
         collectedData: '',
+        selectedCenter: null,
         selectedCenterName: '',
         suggestedCenters: [],
         startDateString: '',
@@ -35,6 +85,9 @@ class GraphModal extends React.Component{
         isLoading: false,
         searchMode: 'state-dist',
         error: '',
+        districts: {
+
+        },
         OdishaDistricts: [
             {'district_id': 446, 'district_name': 'Khurda'},
             {'district_id': 457, 'district_name': 'Cuttack'},
@@ -98,39 +151,8 @@ class GraphModal extends React.Component{
     
     distFilterTab1 = false
 
-    stateSelectHandler = (e) => {
-        // console.log("Selected State: ", e.target.value)
-        let splitedValue = e.target.value.split(" ")
-        let stateId = parseInt(splitedValue[0], 10)
-        let stateName = splitedValue[1]
-        // console.log("Selected State Name: ",stateName)
-        let districtList = null
-        if (stateId === 15){
-            districtList = this.state.JharkhandDistricts
-        }else if (stateId === 26){
-            districtList = this.state.OdishaDistricts
-        }
 
 
-        // let filteredDistrictList = [...districtList.map(item=>{
-        //     return <option className='form-control' value={item['district_id']} key={item.district_id}>{item['district_name']}</option>
-        // })]
-        
-        districtList = districtList.map((district) => {return {value: district['district_id'], label: district['district_name']}})
-        this.setState({
-            selectedStateId: stateId,
-            districtList: districtList,
-            selectedStateName: stateName,
-            hasCenterWiseFilterError: false
-        })
-    }
-
-
-    onFocusHandler = () =>{
-        this.setState({
-            selectedStateId: null
-        })
-    }
 
     districtDataSearchHandler = (district_id) => {
         // let districtId = this.state.selectedDistrictId
@@ -160,6 +182,7 @@ class GraphModal extends React.Component{
         if (item != null){
             let districtId = parseInt(item.value)
             this.setState({
+                selectedDistrict: item,
                 selectedDistrictId: districtId,
             }, ()=>{
                 this.updateChart()
@@ -298,7 +321,8 @@ class GraphModal extends React.Component{
         if (value !== null){
             this.setState({
                 selectedDistrictId: value.value.district_id,
-                selectedCenterName: value.value.center_name
+                selectedCenterName: value.value.center_name,
+                selectedCenter: value
             }, ()=>
                 this.updateChart()
             )
@@ -306,7 +330,8 @@ class GraphModal extends React.Component{
         }else{
             this.setState({
                 selectedCenterName: '',
-                selectedDistrictId: ''
+                selectedDistrictId: '',
+                selectedCenter: null
             }, ()=>
                 this.updateChart()
             )
@@ -324,53 +349,36 @@ class GraphModal extends React.Component{
     loadOptions =async (textInput, callback) => {
         let collectedMatchedData = null
         if(textInput.length >= 3){
-            await axios.get(`http://localhost:8000/slots/center_name?state_id=15&center_name_like=${textInput}`).then(res=>{
+            await axios.get(`https://api.cowinhistory.com/slots/center_name?state_id=15&center_name_like=${textInput}`).then(res=>{
                 collectedMatchedData = res.data
             }).catch(err=>{
                 console.log(err)
             })
-            callback(collectedMatchedData.map(i => ({label: i.center_name + '(' + i.district_id + ')', value: {center_name: i.center_name, district_id: i.district_id}, id: i.district_id})))
+            callback(collectedMatchedData.map(i => ({label: i.center_name + '(' + districtNameMap[i.district_id] + ')', value: {center_name: i.center_name, district_id: i.district_id}, id: i.district_id})))
         }
 
     }
 
-    pincodeSelector = (
-        <div>
-            <div className='pt-3'>
-                <label htmlFor="pincode-input" className='fw-bold'>Pincode</label>
-                <input type="string" class="form-control" id="pincode-input" onChange={this.pincodeInputHandler} placeholder='Enter a valid pincode'/>
-            </div>
-            {this.state.isPincodeFilterError?
-                <div value={this.state.isPincodeFilterError}>
-                    <small class="form-text text-muted">The pincode entered seems <strong>not to be a valid pincode</strong>. Try again with a valid pincode.</small>
-                    <button type="submit" class="btn btn-primary mt-3" onClick={this.pincodeSearchHandler} disabled>Show Data</button>
-                </div>
-                : 
-                <button type="submit" class="btn btn-primary mt-3" onClick={this.updateChart}>Show Data</button>
-            }
-        </div>
-    )
-
-    centerSelector = (
-        <div>
-            <label htmlFor="state-input" className='fw-bold'>State</label>
-            <select class="form-control" id="state-input" onChange={this.stateSelectHandler} data-toggle="tooltip" >
-                <option value='selectState'>Select a state</option>
-                <option value={String(15)+'Jharkhand'}>Jharkhand</option>
-                <option value={String(26)+'Odisha'}>Odisha</option>
-            </select>
-            <label className='fom-label pt-3 fw-bold' htmlFor='center-input'>Centers</label>
-            <AsyncSelect
-                    isClearable
-                    
-                    placeholder='Type a center name here.'
-                    // onInputChange={this.onChange}
-                    onChange={this.onChange}
-                    loadOptions = {this.loadOptions}
-            />
-            <small class="form-text text-muted">Type atleast first <strong>3 characters</strong> of the center name to get the most <strong>relevant</strong> data.</small>
-        </div>
-    )
+    loadStatesOptions = () => {
+        const statesOptions = Object.entries(districtsData).map(([k, v]) => {return {value: k, label: stateNameMap[k]}})
+        console.log("statesOptions", statesOptions);
+        return statesOptions;
+    }
+    onStateChangeInCenter = (item) => {
+        let stateId = ''
+        
+        console.log('onStateChangeInCenter', item)
+        if (item) {
+            stateId = item.value
+        }
+        
+        this.setState({
+            selectedStateId: stateId,
+            selectedCenter: null,
+            selectedCenterName: null
+        }, () => this.updateChart())
+        
+    }
 
     getUTCDateString = (dateObj) =>{
         let date = new Date(dateObj).toISOString().slice(0, 19).replace('T', " ")
@@ -435,16 +443,25 @@ class GraphModal extends React.Component{
     //     }
     // }
 
-    stateSelector = (
-        <div>
-            <label htmlFor="state-input" className='fw-bold'>State</label>
-            <select class="form-control" id="state-input" onChange={this.stateSelectHandler}>
-                <option value='selectState'>Select a state</option>
-                <option value={String(15)+' Jharkhand'} id='Jharkhand'>Jharkhand</option>
-                <option value={String(26)+' Odisha'} id='Odisha'>Odisha</option>
-            </select>
-        </div>
-    )
+    
+
+    onStateChange = (item) => {
+        let districtList = []
+        let stateId = ''
+        if (item) {
+            stateId = item.value
+            districtList = districtsData[stateId].districts.map((v) => ({value: v['district_id'], label: v['district_name']}))
+        }
+
+        this.setState({
+            districtList: districtList, 
+            selectedDistrictId: '', 
+            selectedDistrict: null, 
+            selectedStateId: stateId
+        },
+        ()=>this.updateChart())
+    }
+
 
     activeTabHandler = (e) => {
         console.log("Tab id: ", e.target.id)
@@ -474,6 +491,7 @@ class GraphModal extends React.Component{
                 activeFileterTab: 'center',
                 selectedDistrictId: '',
                 selectedState: '',
+                selectedStateId: '',
                 selectedStateName: '',
                 inputPincode: '', 
                 showOverlay: true,           
@@ -501,23 +519,13 @@ class GraphModal extends React.Component{
         }
     }
     componentDidUpdate = (prevProp, prevState) => {
-        if (prevState.selectedStateId !== this.state.selectedStateId){
-            this.setState({
-                hasCenterWiseFilterError: false
-            })
-        }
     }
 
     componentDidMount = () => {
         document.title = 'Cowinhistory'
         this.updateChart()
         this.setState({
-            activeFileterMenu: this.stateSelector,
             stateDistTabClass: "nav-link active",
-            activeFileterTab: 'state-dist',
-            showOverlay: true,
-            // collectedData: apiData
-            // collectedData: res.data
         }) 
         this.dateRangeDataSearchHandler([startOfDay(subDays(new Date(), 14)), endOfDay(new Date())])
         // })
@@ -558,29 +566,78 @@ class GraphModal extends React.Component{
                                     <NavLink class={this.state.distCenterTabClass} id='center' onClick={this.activeTabHandler} to="/">Center Name</NavLink>
                                     <NavLink class={this.state.pincodeTabClass} id='pincode' onClick={this.activeTabHandler} to="/">Pincode</NavLink>
                                 </nav>
-                                {this.state.activeFileterTab === 'state-dist'?this.state.activeFileterMenu:null}
-                                {this.state.activeFileterTab === 'state-dist'?
+                                {this.state.searchMode === 'state-dist'&&
+                                            <div className='pt-3'>
+                                            <label htmlFor="state-input" className='fw-bold'>State</label>
+                                            {/* <select class="form-control" id="state-input" onChange={this.stateSelectHandler}>
+                                                <option value='selectState'>Select a state</option>
+                                                <option value={String(15)+' Jharkhand'} id='Jharkhand'>Jharkhand</option>
+                                                <option value={String(26)+' Odisha'} id='Odisha'>Odisha</option>
+                                            </select> */}
+                                            <Select
+                                                options={statesOptions}
+                                                isSearchable={true}
+                                                isClearable={true}
+                                                onChange={this.onStateChange}
+                                                menuPortalTarget={document.body} 
+                                                styles={{ menuPortal: base => ({ ...base, zIndex: 9999 }) }}
+                                            />
+                                            <label className='fom-label pt-3 fw-bold' htmlFor='dist-input'>District</label>
+                                            <Select 
+                                                value={this.state.selectedDistrict}
+                                                options={this.state.districtList}
+                                                isSearchable={true}
+                                                onChange={this.tab1distSelectHandler}
+                                                isClearable={true}
+                                                menuPortalTarget={document.body} 
+                                                styles={{ menuPortal: base => ({ ...base, zIndex: 9999 }) }}
+                                            />
+                                        </div>
+                                }
+                                {this.state.searchMode === 'center' &&
+                                    <div className='pt-3'>
+                                    <label htmlFor="state-input" className='fw-bold'>State</label>
+                                    <Select
+                                        options={statesOptions}
+                                        isSearchable={true}
+                                        isClearable={true}
+                                        onChange={this.onStateChangeInCenter}
+                                        menuPortalTarget={document.body} 
+                                        styles={{ menuPortal: base => ({ ...base, zIndex: 9999 }) }}
+                                    />
+                                    <label className='fom-label fw-bold' htmlFor='center-input'>Centers</label>
+                                    <AsyncSelect
+                                            isClearable
+                                            value={this.state.selectedCenter}
+                                            placeholder='Type a center name here.'
+                                            // onInputChange={this.onChange}
+                                            onChange={this.onChange}
+                                            loadOptions = {this.loadOptions}
+                                            menuPortalTarget={document.body} 
+                                            styles={{ menuPortal: base => ({ ...base, zIndex: 9999 }) }}
+                                    />
+                                    <small class="form-text text-muted">Type atleast first <strong>3 characters</strong> of the center name to get the most <strong>relevant</strong> data.</small>
+                                </div>
+                                }
+                                {this.state.searchMode === 'pincode' && 
                                     <div>
-                                        <label className='fom-label pt-3 fw-bold' htmlFor='dist-input'>District</label>
-                                        <Select 
-                                            options={this.state.districtList}
-                                            isSearchable={true}
-                                            onChange={this.tab1distSelectHandler}
-                                            isClearable={true}
-                                        />
-                                        {/* <select class="form-select" id='dist-input' value={this.state.selectedDistrictId} onChange={this.tab1distSelectHandler}>
-                                            <option>Select a district</option>
-                                            {this.state.districtList !== null ?this.state.districtList.map(item => {
-                                                return item
-                                            }):null}
-                                        </select> */}
+                                    <div className='pt-3'>
+                                        <label htmlFor="pincode-input" className='fw-bold'>Pincode</label>
+                                        <input type="string" class="form-control" id="pincode-input" onChange={this.pincodeInputHandler} placeholder='Enter a valid pincode'/>
                                     </div>
-                                :null}
-                                {this.state.activeFileterTab === 'center'? this.centerSelector:null}
-                                {this.state.activeFileterTab === 'pincode'? this.pincodeSelector: null}
+                                    {this.state.isPincodeFilterError?
+                                        <div value={this.state.isPincodeFilterError}>
+                                            <small class="form-text text-muted">The pincode entered seems <strong>not to be a valid pincode</strong>. Try again with a valid pincode.</small>
+                                            <button type="submit" class="btn btn-primary mt-3" onClick={this.pincodeSearchHandler} disabled>Show Data</button>
+                                        </div>
+                                        : 
+                                        <button type="submit" class="btn btn-primary mt-3" onClick={this.updateChart}>Show Data</button>
+                                    }
+                                </div>
+                                }
                             </div>
                             <div className='col'>
-
+                            searchMode
                             </div>
                             <div className='col pt-4'>
 
@@ -605,7 +662,7 @@ class GraphModal extends React.Component{
                                           ]
                                         },
                                         {
-                                          label: 'last15Days',
+                                          label: 'Last 15 Days',
                                           value: [startOfDay(subDays(new Date(), 14)), endOfDay(new Date())]
                                         }
                                       ]}
@@ -616,10 +673,10 @@ class GraphModal extends React.Component{
                         </div>
                         <div className='row'>
                             <div className='col-lg-12 col-sm-12 col-md-12 justify-content-between mt-5'>
-
+                                <hr/>
                                 {this.state.error ? 
                                 <>
-                                    <div class="alert alert-primary" role="alert">{this.state.error}</div>
+                                    <div class="alert alert-warning" role="alert">{this.state.error}</div>
                                 </>
                                 :
                                     <LoadingOverlay
@@ -627,7 +684,8 @@ class GraphModal extends React.Component{
                                         spinner={<BounceLoader />}
                                     >
                                     {this.state.collectedData.length !== 0? 
-                                        <ScatterGraph dataObject={this.state.collectedData} isShowOverlayTrue={this.state.showOverlay}/>
+                                        <ScatterGraph dataObject={this.state.collectedData} stateName={stateNameMap[this.state.selectedStateId]} districtName={districtNameMap[this.state.selectedDistrictId]} 
+                                        centerName={this.state.selectedCenterName} pincode={this.state.inputPincode} searchMode={this.state.searchMode} isShowOverlayTrue={this.state.showOverlay}/>
                                     : 
                                         <div class="alert alert-danger" role="alert">
                                             Sorry, we don't have data for your selection now.
