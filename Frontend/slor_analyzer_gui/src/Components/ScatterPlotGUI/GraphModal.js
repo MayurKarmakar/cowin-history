@@ -189,7 +189,8 @@ class GraphModal extends React.Component{
             })
         }else{
             this.setState({
-                selectedDistrictId: ''
+                selectedDistrictId: '',
+                selectedDistrict: null
             }, ()=> this.updateChart())
         }
     }
@@ -472,6 +473,7 @@ class GraphModal extends React.Component{
                 stateDistTabClass: "nav-link active",
                 activeFileterTab: 'state-dist',
                 selectedDistrictId: '',
+                selectedDistrict: null,
                 selectedState: '',
                 selectedStateName: '',
                 inputPincode: '',
@@ -493,6 +495,7 @@ class GraphModal extends React.Component{
                 selectedState: '',
                 selectedStateId: '',
                 selectedStateName: '',
+                selectedDistrict: null,
                 inputPincode: '', 
                 showOverlay: true,           
                 searchMode: 'center'
@@ -510,6 +513,7 @@ class GraphModal extends React.Component{
                 selectedStateName: '',
                 inputPincode: '',
                 selectedDistrictId: '',
+                selectedDistrict: null,
                 showOverlay: true,
                 searchMode: 'pincode'
 
