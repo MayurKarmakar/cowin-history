@@ -637,7 +637,6 @@ class GraphModal extends React.Component{
                                 }
                             </div>
                             <div className='col'>
-                            searchMode
                             </div>
                             <div className='col pt-4'>
 
