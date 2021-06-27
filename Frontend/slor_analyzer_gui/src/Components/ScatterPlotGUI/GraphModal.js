@@ -2,11 +2,14 @@ import React from 'react'
 import ScatterGraph from '../Graph/Graph'
 import { NavLink } from 'react-router-dom'
 import AsyncSelect from 'react-select/async'
+import Select from 'react-select'
 import axios from 'axios'
 import { DateRangePicker, SingleCalender  } from 'rsuite'
 import 'rsuite/dist/styles/rsuite-default.css';
 import { invalid } from 'moment'
-
+import LoadingOverlay from 'react-loading-overlay'
+import BounceLoader from 'react-spinners/BounceLoader'
+import {startOfDay, endOfDay, addDays, subDays} from 'date-fns'
 
 class GraphModal extends React.Component{
 
@@ -20,13 +23,19 @@ class GraphModal extends React.Component{
         districtList: [],
         activeFileterTab: '',
         activeFileterMenu: '',
+        dateRange: '',
         collectedData: '',
         selectedCenterName: '',
         suggestedCenters: [],
+        startDateString: '',
+        endDateString: '',
         selectedStateName: '',
         dateRangeArray: [],
-        hasCenterWiseFilterError: true,
+        hasError: false,
         isNoDataAvailable: '',
+        isLoading: false,
+        searchMode: 'state-dist',
+        error: '',
         OdishaDistricts: [
             {'district_id': 446, 'district_name': 'Khurda'},
             {'district_id': 457, 'district_name': 'Cuttack'},
@@ -104,13 +113,14 @@ class GraphModal extends React.Component{
         }
 
 
-        let filteredDistrictList = [...districtList.map(item=>{
-            return <option className='form-control' value={item['district_id']} key={item.district_id}>{item['district_name']}</option>
-        })]
+        // let filteredDistrictList = [...districtList.map(item=>{
+        //     return <option className='form-control' value={item['district_id']} key={item.district_id}>{item['district_name']}</option>
+        // })]
         
+        districtList = districtList.map((district) => {return {value: district['district_id'], label: district['district_name']}})
         this.setState({
             selectedStateId: stateId,
-            districtList: filteredDistrictList,
+            districtList: districtList,
             selectedStateName: stateName,
             hasCenterWiseFilterError: false
         })
@@ -125,107 +135,203 @@ class GraphModal extends React.Component{
 
     districtDataSearchHandler = (district_id) => {
         // let districtId = this.state.selectedDistrictId
-        console.log("districtDataSearchHandler fired")
-        let urlPath = `https://api.cowinhistory.com/slots/district_data/?district_id=${district_id}`
+        // console.log("districtDataSearchHandler fired")
+        
 
-        axios.get(urlPath).then( res => {
-            res.data.length !== 0?
-            this.setState({
-                collectedData: res.data,
-                isNoDataAvailable: false
-            }): this.setState({
-                isNoDataAvailable: true
-            })
-        }).catch(err => {
-            console.log(err)
-        })
-        }
+        // axios.get(urlPath).then( res => {
+        //     res.data.length !== 0?
+        //     this.setState({
+        //         collectedData: res.data,
+        //         isNoDataAvailable: false,
+        //         showOverlay: false
+        //     }): this.setState({
+        //         isNoDataAvailable: true,
+        //         showOverlay: false,
+        //         collectedData: []
+        //     })
+        // }).catch(err => {
+        //     console.log(err)
+        // })
+
+    }
 
     
 
-    tab1distSelectHandler = (e) => {
-        console.log("Selected District: ",e.target.value)
-        let selectedDist = parseInt(e.target.value)
-        this.setState({
-            selectedDistrictId: selectedDist
-        }, ()=>{
-            this.districtDataSearchHandler(e.target.value)
-        })
+    tab1distSelectHandler = (item) => {
+        if (item != null){
+            let districtId = parseInt(item.value)
+            this.setState({
+                selectedDistrictId: districtId,
+            }, ()=>{
+                this.updateChart()
+            })
+        }else{
+            this.setState({
+                selectedDistrictId: ''
+            }, ()=> this.updateChart())
+        }
     }
     // autoSuggestionMaker = () => {
+    updateChart = () => {
+        let {searchMode, selectedDistrictId, inputPincode, selectedCenterName, startDateString, endDateString} = this.state
 
+        let urlPath = ''
+        if (searchMode === 'state-dist') {
+            if (!selectedDistrictId) {
+                this.setState({
+                    error: 'Please select the state and district.'
+                })
+                return
+            }
+    
+            urlPath = `http://127.0.0.1:8000/slots/district_data/?district_id=${selectedDistrictId}`
+        }
+        if (searchMode === 'center') {
+            if (!selectedCenterName) {
+                this.setState({
+                    error: 'Please select the state and center name.'
+                })
+                return
+            }
+
+            urlPath = `http://127.0.0.1:8000/slots/center/data/?district_id=${selectedDistrictId}&center_name=${selectedCenterName}`
+        }
+        if (searchMode === 'pincode') {
+            if (!inputPincode) {
+                this.setState({
+                    error: 'Please select the pincode'
+                })
+                return
+            }
+
+            const pincodePattern = /^\d{6}$/;
+
+            if (!pincodePattern.test(inputPincode.trim())) {
+                this.setState({
+                    error: 'Please enter a valid pincode.'
+                })
+                return
+            }
+
+            urlPath = `http://127.0.0.1:8000/slots/pincode/?pincode=${inputPincode}`
+        }
+
+
+        if (!startDateString || !endDateString) {
+            this.setState({
+                error: 'Please select a date range.'
+            })
+            return
+        }
+        
+        urlPath += `&start_date=${startDateString}&end_date=${endDateString}`
+
+        this.setState({
+            isLoading: true
+        })
+
+        axios.get(urlPath).then(res => {
+            this.setState({
+                collectedData: res.data,
+                error: '',
+                isLoading: false
+            })
+        }).catch(err => {
+            this.setState({
+                error: 'Unknown error happened. Please refresh the page to continue.',
+                isLoading: false
+            })
+            console.log(err)
+        })
+    }
     // }
     pincodeInputHandler = (e) =>{
         // console.log("Pincode value: ", e.target.value)
         this.setState({
-            inputPincode: e.target.value
+            inputPincode: e.target.value,
         })
     }
+
     pincodeSearchHandler = () => {
-        axios.get(`https://api.cowinhistory.com/slots/pincode/?pincode=${this.state.inputPincode}`).then(res => {
-            res.data.length !== 0?
-            this.setState({
-                collectedData: res.data,
-                isNoDataAvailable: false
+        if(!isNaN(this.state.inputPincode)){
+            axios.get(`http://127.0.0.1:8000/slots/pincode/?pincode=${this.state.inputPincode}`).then(res => {
+                res.data.length !== 0?
+                this.setState({
+                    collectedData: res.data,
+                    isNoDataAvailable: false,
+                    showOverlay: false
+                })
+                : this.setState({
+                    isNoDataAvailable: true
+                })
+            }).catch(err => {
+                console.log("ERR pincode: ",err)
             })
-            : this.setState({
-                isNoDataAvailable: true
-            })
-        }).catch(err => {
-            console.log("ERR pincode: ",err)
-        })
+        }
     }
 
-    centerNameSearchHandler = (center_name) =>{
-        let selectedState = this.state.selectedStateId
-        let selectedCenterName = this.state.selectedCenterName
-        let urlPath = `https://api.cowinhistory.com/slots/center_name/?state_id=${selectedState}/?center_name_like=${center_name}`
+    dataForCenterSearchHandler = (district_id, center_name) =>{
+        // this.updateChart(this.state.)
+        // let selectedDistrict = district_id
+        // let selectedCenterName = center_name
+        // let urlPath = `http://127.0.0.1:8000/slots/center/data/?district_id=${district_id}&center_name=${center_name}`
 
-        axios.get(urlPath).then(res=>{
-            res.data.length !== 0?
-            this.setState({
-                collectedData: res.data,
-                isNoDataAvailable: false
-            })
-            : this.setState({isNoDataAvailable: true})
-        }).catch(err =>{
-            console.log(err)
-        })
+        // axios.get(urlPath).then(res=>{
+        //     this.setState({
+        //         collectedData: res.data,
+        //         isNoDataAvailable: false,
+        //         showOverlay: false,
+        //     })
+        // }).catch(err =>{
+        //     console.log(err)
+        // })
     }
 
     getDataByCenterName = () => {
         console.log("Selected center name: ", this.state.selectedCenterName)
     }
-    onChange = (label) =>{
+    onChange = (value) =>{
         // let {valueDict} = label.value
-        console.log("label", label)
-        console.log("Got label: ", label.label)
-        console.log("Got value: ", label.value)
-        console.log("Got value type: ", typeof(label.value))
-        if (label.value !== undefined || label.value !== null){
+        // console.log("label", value.value)
+        // console.log("Got label: ", value.value)
+        // console.log("Got value: ", value.value)
+        // console.log(value)
+        if (value !== null){
             this.setState({
-                selectedCenterName: label.value
-            }, ()=>{
-                this.getDataByCenterName()
-            })
+                selectedDistrictId: value.value.district_id,
+                selectedCenterName: value.value.center_name
+            }, ()=>
+                this.updateChart()
+            )
+            // this.dataForCenterSearchHandler(value.value.district_id, value.value.center_name)
+        }else{
+            this.setState({
+                selectedCenterName: '',
+                selectedDistrictId: ''
+            }, ()=>
+                this.updateChart()
+            )
         }
+        // console.log("Got value type: ", value.value.center_name)
+        // if (value.value !== undefined || value.value !== null){
+        //     this.setState({
+        //         selectedCenterName: value.value
+        //     }, ()=>{
+        //         this.getDataByCenterName()
+        //     })
+        // }
     }
 
     loadOptions =async (textInput, callback) => {
         let collectedMatchedData = null
-        await axios.get(`https://api.cowinhistory.com/slots/center_name?state_id=15&center_name_like=${textInput}`).then(res=>{
-            res.data.length !== 0 ?
-            this.setState({
-                collectedData: res.data,
-                isNoDataAvailable: false
-            },()=>{
-                console.log(this.state.collectedData)
+        if(textInput.length >= 3){
+            await axios.get(`http://localhost:8000/slots/center_name?state_id=15&center_name_like=${textInput}`).then(res=>{
+                collectedMatchedData = res.data
+            }).catch(err=>{
+                console.log(err)
             })
-            : this.setState({isNoDataAvailable: true})
-        }).catch(err=>{
-            console.log(err)
-        })
-        callback(collectedMatchedData.map(i => ({label: i.center_name + '(' + i.district_id + ')', value: {center_name: i.center_name, district_id: i.district_id}, id: i.district_id})))
+            callback(collectedMatchedData.map(i => ({label: i.center_name + '(' + i.district_id + ')', value: {center_name: i.center_name, district_id: i.district_id}, id: i.district_id})))
+        }
 
     }
 
@@ -233,9 +339,16 @@ class GraphModal extends React.Component{
         <div>
             <div className='pt-3'>
                 <label htmlFor="pincode-input" className='fw-bold'>Pincode</label>
-                <input type="number" class="form-control" id="pincode-input" onChange={this.pincodeInputHandler} placeholder='Enter a valid pincode'/>
+                <input type="string" class="form-control" id="pincode-input" onChange={this.pincodeInputHandler} placeholder='Enter a valid pincode'/>
             </div>
-            <button type="submit" class="btn btn-primary mt-2" onClick={this.pincodeSearchHandler}>Show Data</button>
+            {this.state.isPincodeFilterError?
+                <div value={this.state.isPincodeFilterError}>
+                    <small class="form-text text-muted">The pincode entered seems <strong>not to be a valid pincode</strong>. Try again with a valid pincode.</small>
+                    <button type="submit" class="btn btn-primary mt-3" onClick={this.pincodeSearchHandler} disabled>Show Data</button>
+                </div>
+                : 
+                <button type="submit" class="btn btn-primary mt-3" onClick={this.updateChart}>Show Data</button>
+            }
         </div>
     )
 
@@ -250,32 +363,13 @@ class GraphModal extends React.Component{
             <label className='fom-label pt-3 fw-bold' htmlFor='center-input'>Centers</label>
             <AsyncSelect
                     isClearable
+                    
                     placeholder='Type a center name here.'
-                    onInputChange={this.onChange}
+                    // onInputChange={this.onChange}
+                    onChange={this.onChange}
                     loadOptions = {this.loadOptions}
-                />
-            {/* {this.state.hasCenterWiseFilterError?
-                <AsyncSelect
-                    isClearable
-                    // value = {this.state.suggestedCenters}
-                    isDisabled
-                    placeholder='Type a center name here.'
-                    // onChange={this.onChange}
-                    onInputChange={this.onChange}
-                    loadOptions = {this.loadOptions}
-                />
-            :
-                <AsyncSelect
-                    isClearable
-                    // value = {this.state.suggestedCenters}
-                    placeholder='Type a center name here.'
-                    // onChange={this.onChange}
-                    onInputChange={this.onChange}
-                    loadOptions = {this.loadOptions}
-                />
-            } */}
-            
-            {/* {this.autoSuggestionMaker()} */}
+            />
+            <small class="form-text text-muted">Type atleast first <strong>3 characters</strong> of the center name to get the most <strong>relevant</strong> data.</small>
         </div>
     )
 
@@ -286,9 +380,9 @@ class GraphModal extends React.Component{
     }
     
     dateRangeDataSearchHandler = (dateRange) => {
-        console.log(dateRange)
-        console.log(dateRange[0])
-        console.log(dateRange[1])
+        console.log("Date range data", dateRange)
+        console.log("Date range data 1",dateRange[0])
+        console.log("Date range data 2",dateRange[1])
         if (dateRange.length !== 0 && dateRange.length === 2){
             let startDate = new Date(dateRange[0])
             startDate.setHours(startDate.getHours()+5)
@@ -305,20 +399,26 @@ class GraphModal extends React.Component{
             // console.log(startDate)
             // let endDate = new Date(dateRange[1]).toISOString().split('T')[0]
             // console.log(endDate)
-            let urlPath = `https://api.cowinhistory.com/slots/date/range_filter?start_date=${startDateString}&end_date=${endDateString}`
-            axios.get(urlPath).then(res=>{
-                res.data.length !== 0?
-                this.setState({
-                    collectedData: res.data,
-                    isNoDataAvailable: false
-                })
-                : this.setState({isNoDataAvailable: true})
-            }).catch(err=>{
-                console.log(err)
+            // let urlPath = `http://localhost:8000/slots/date/range_filter?start_date=${startDateString}&end_date=${endDateString}`
+            this.setState({
+                startDateString: startDateString,
+                endDateString: endDateString,
+            }, () => {
+                this.updateChart()
             })
+                // axios.get(urlPath).then(res=>{
+                //     res.data.length !== 0?
+                //     : this.setState({collectedData: [], showOverlay:false})
+                // }).catch(err=>{
+                //     console.log(err)
+                // })
         }else{
             this.setState({
-                hasDateRangeSelectorError: true
+                startDateString: '',
+                endDateString: ''
+
+            }, ()=>{
+                this.updateChart()
             })
         }
     }
@@ -359,8 +459,12 @@ class GraphModal extends React.Component{
                 selectedState: '',
                 selectedStateName: '',
                 inputPincode: '',
+                showOverlay: true,
 
-                
+                searchMode: 'state-dist'
+
+            }, ()=>{
+                this.updateChart()
             })
             
         }else if (e.target.id === 'center'){
@@ -372,7 +476,13 @@ class GraphModal extends React.Component{
                 selectedDistrictId: '',
                 selectedState: '',
                 selectedStateName: '',
-                inputPincode: '',            })
+                inputPincode: '', 
+                showOverlay: true,           
+                searchMode: 'center'
+
+            }, ()=>{
+                this.updateChart()
+            })
         }else if (e.target.id === 'pincode'){
             this.setState({
                 distCenterTabClass: "nav-link",
@@ -382,7 +492,12 @@ class GraphModal extends React.Component{
                 selectedState: '',
                 selectedStateName: '',
                 inputPincode: '',
-                selectedDistrictId: ''
+                selectedDistrictId: '',
+                showOverlay: true,
+                searchMode: 'pincode'
+
+            }, ()=>{
+                this.updateChart()
             })
         }
     }
@@ -395,91 +510,167 @@ class GraphModal extends React.Component{
     }
 
     componentDidMount = () => {
-        document.title = 'abc'
+        document.title = 'Cowinhistory'
+        this.updateChart()
+        this.setState({
+            activeFileterMenu: this.stateSelector,
+            stateDistTabClass: "nav-link active",
+            activeFileterTab: 'state-dist',
+            showOverlay: true,
+            // collectedData: apiData
+            // collectedData: res.data
+        }) 
+        this.dateRangeDataSearchHandler([startOfDay(subDays(new Date(), 14)), endOfDay(new Date())])
         // })
-        let getUrl = 'https://api.cowinhistory.com/slots/slotAvailabilityEvent/'
-        axios.get(getUrl).then(res =>{
-            console.log(res.data)
-            // this.prepareDataforVisuals(res.data)
-            this.setState({
-                activeFileterMenu: this.stateSelector,
-                stateDistTabClass: "nav-link active",
-                activeFileterTab: 'state-dist',
-                // collectedData: apiData
-                collectedData: res.data
-            })   
-        }).catch(err=>{
-            console.log(err)
-            document.write("Error Happened")
-        })
+        // let getUrl = 'http://localhost:8000/slots/updateChartlotAvailabilityEvent/'
+        // axios.get(getUrl).then(res =>{
+        //     console.log(res.data)
+        //     // this.prepareDataforVisuals(res.data)
+        //     this.setState({
+        //         activeFileterMenu: this.stateSelector,
+        //         stateDistTabClass: "nav-link active",
+        //         activeFileterTab: 'state-dist',
+        //         // collectedData: apiData
+        //         collectedData: res.data
+        //     })   
+        // }).catch(err=>{
+        //     console.log(err)
+        //     document.write("Error Happened")
+        // })
         
     }
 
 
     render(){
-        console.log("Collected Data: ", this.state.collectedData)
-        console.log("x array value: ", this.x)
+
         return (
-            <>
-            <div className='row justify-content-center m-5'>
-                <h1>COVID-19 Vaccine's slot availability scatter plot graph.</h1>
-                <div className='container-fluid shadow-lg p-3 mb-5 bg-white rounded mt-3'>
-                    <div className='row'>
-                        <h5 class="d-flex fw-bold">Search by:</h5>
-                        <div className='col-lg-4 col-md-12 col-sm-6 pt-4 '>
-                            <nav class="nav flex-sm-column flex-lg-row flex-xs-column nav-pills d-flex-xs justify-content-center">
-                                <NavLink class={this.state.stateDistTabClass} aria-current="page" id='state-dist' onClick={this.activeTabHandler} to="/">State-Dist.</NavLink>
-                                <NavLink class={this.state.distCenterTabClass} id='center' onClick={this.activeTabHandler} to="/">Center Name</NavLink>
-                                <NavLink class={this.state.pincodeTabClass} id='pincode' onClick={this.activeTabHandler} to="/">Pincode</NavLink>
-                            </nav>
-                            {this.state.activeFileterTab === 'state-dist'?this.state.activeFileterMenu:null}
-                            {this.state.activeFileterTab === 'state-dist'?
-                                <div>
-                                    <label className='fom-label pt-3 fw-bold' htmlFor='dist-input'>District</label>
-                                    <select class="form-select" id='dist-input' value={this.state.selectedDistrictId} onChange={this.tab1distSelectHandler}>
-                                        <option>Select a district</option>
-                                        {this.state.districtList !== null ?this.state.districtList.map(item => {
-                                            return item
-                                        }):null}
-                                    </select>
-                                </div>
-                            :null}
-                            {this.state.activeFileterTab === 'center'? this.centerSelector:null}
-                            {this.state.activeFileterTab === 'pincode'? this.pincodeSelector: null}
-                        </div>
-                        <div className='col-lg-4'>
+            <React.Fragment>
+                <div className='row justify-content-center d-lg-block m-2 m-md-5 m-lg-5'>
+                    <h1>COVID-19 Vaccine History</h1>
+                    <div className='container-fluid p-3 mb-5 bg-white rounded mt-3'>
+                        <div className='row'> 
+                            <div className='col-lg-3 offset-1'>
 
-                        </div>
-                        <div className='col-lg-4 pt-4 d-flex flex-column flex-lg-row'>
-
-                            <div className='col'>
-                                <div className='d-flex-xs justify-content-center d-flex align-items-center'>
-                                    <h5 className='fw-bold'>Filter by date: </h5>
-                                </div>
+                            </div>
+                            <h5 class="d-flex fw-bold">Search by:</h5>
+                            <div className='col-lg-3 col-md-12 col-sm-6 pt-4 '>
+                                <nav class="nav flex-sm-row flex-lg-row flex-row flex-md-column nav-pills d-flex-xs justify-content-center">
+                                    <NavLink class={this.state.stateDistTabClass} aria-current="page" id='state-dist' onClick={this.activeTabHandler} to="/">District</NavLink>
+                                    <NavLink class={this.state.distCenterTabClass} id='center' onClick={this.activeTabHandler} to="/">Center Name</NavLink>
+                                    <NavLink class={this.state.pincodeTabClass} id='pincode' onClick={this.activeTabHandler} to="/">Pincode</NavLink>
+                                </nav>
+                                {this.state.activeFileterTab === 'state-dist'?this.state.activeFileterMenu:null}
+                                {this.state.activeFileterTab === 'state-dist'?
+                                    <div>
+                                        <label className='fom-label pt-3 fw-bold' htmlFor='dist-input'>District</label>
+                                        <Select 
+                                            options={this.state.districtList}
+                                            isSearchable={true}
+                                            onChange={this.tab1distSelectHandler}
+                                            isClearable={true}
+                                        />
+                                        {/* <select class="form-select" id='dist-input' value={this.state.selectedDistrictId} onChange={this.tab1distSelectHandler}>
+                                            <option>Select a district</option>
+                                            {this.state.districtList !== null ?this.state.districtList.map(item => {
+                                                return item
+                                            }):null}
+                                        </select> */}
+                                    </div>
+                                :null}
+                                {this.state.activeFileterTab === 'center'? this.centerSelector:null}
+                                {this.state.activeFileterTab === 'pincode'? this.pincodeSelector: null}
                             </div>
                             <div className='col'>
-                                <div className='col'>
-                                    <DateRangePicker
-                                        placeholder='Select the start and end date.'
-                                        onChange={this.dateRangeDataSearchHandler}
-                                        showOneCalendar={true}
-                                        placement="autoVerticalEnd"
-                                    />
-                                </div>
+
                             </div>
-                            <div className='col'>
+                            <div className='col pt-4'>
+
+                                <div className='d-flex-xs d-flex mb-2'>
+                                    <h5 className='fw-bold'>Select date range: </h5>
+                                </div>
+                                <DateRangePicker
+                                    placeholder='Select the start and end date.'
+                                    onChange={this.dateRangeDataSearchHandler}
+                                    showOneCalendar={true}
+                                    placement="autoVerticalEnd"
+                                    ranges= {[
+                                        {
+                                          label: 'today',
+                                          value: [startOfDay(new Date()), endOfDay(new Date())]
+                                        },
+                                        {
+                                          label: 'yesterday',
+                                          value: [
+                                            startOfDay(addDays(new Date(), -1)),
+                                            endOfDay(addDays(new Date(), -1))
+                                          ]
+                                        },
+                                        {
+                                          label: 'last15Days',
+                                          value: [startOfDay(subDays(new Date(), 14)), endOfDay(new Date())]
+                                        }
+                                      ]}
+                                    defaultValue={[startOfDay(subDays(new Date(), 14)), endOfDay(new Date())]}
+                                    //value={this.state.dateRange} 
+                                    size='lg'
+                                />
+                        </div>
+                        <div className='row'>
+                            <div className='col-lg-12 col-sm-12 col-md-12 justify-content-between mt-5'>
+
+                                {this.state.error ? 
+                                <>
+                                    <div class="alert alert-primary" role="alert">{this.state.error}</div>
+                                </>
+                                :
+                                    <LoadingOverlay
+                                        active={this.state.isLoading}
+                                        spinner={<BounceLoader />}
+                                    >
+                                    {this.state.collectedData.length !== 0? 
+                                        <ScatterGraph dataObject={this.state.collectedData} isShowOverlayTrue={this.state.showOverlay}/>
+                                    : 
+                                        <div class="alert alert-danger" role="alert">
+                                            Sorry, we don't have data for your selection now.
+                                        </div>    
+                                    }
+                                    </LoadingOverlay>
+                                }
+                                {/* {this.state.showOverlay && this.state.activeFileterTab === 'state-dist'?
+                                    <div class="alert alert-primary" role="alert">
+                                        Please proceed with selecting a <strong>state</strong> and a <strong>district</strong> to see
+                                        the COVID-19 vaccine slot availability graph of the requested region.
+                                    </div>
+                                :
+                                    null
+                                }
+                                {this.state.showOverlay && this.state.activeFileterTab === 'center'?
+                                    <div class="alert alert-primary" role="alert">
+                                        Please proceed with selecting a <strong>state</strong> and a <strong>center</strong> to see
+                                        the COVID-19 vaccine slot availability graph of the requested region.
+                                    </div>
+                                :
+                                    null
+                                }
+                                {this.state.showOverlay && this.state.activeFileterTab === 'pincode'?
+                                    <div class="alert alert-primary" role="alert">
+                                        Please proceed with typing a valid <strong>pincode</strong> to see
+                                        the COVID-19 vaccine slot availability graph of the requested region.
+                                    </div>
+                                :
+                                    null
+                                // <ScatterGraph dataObject={this.state.collectedData}/>
+                                // <ScatterGraph dataObject={this.state.collectedData} isShowOverlayTrue={this.state.showOverlay}/>
+                                } */}
+
                             </div>
                         </div>
                     </div>
-                    <div className='row'>
-                        <div className='col-lg-12 col-sm-12 col-md-12 justify-content-between mt-5'>
-                            <ScatterGraph dataObject={this.state.collectedData} isNoData={this.state.isNoDataAvailable}/>
-                        </div>
-                    </div>
-                </div>
+                </div>        
                 <hr/>
+                
             </div>
-            </>
+            </React.Fragment>
         )
     }
 }

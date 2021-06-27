@@ -22,7 +22,7 @@ class Graph extends React.Component{
         apiData: [],
         highchartsSeries: [],
         centersInSelectedDisctrict: null,
-        isLoading: true,
+        isLoading: '',
         myChart: {
             time: {
                 timezone: 'Asia/Kolkata'
@@ -121,6 +121,7 @@ class Graph extends React.Component{
                 apiData: this.props.dataObject,
                 isLoading: true,
             },()=>{
+                // console.log("Is loading: ", this.state.isLoading)
                 this.prepareDataforVisuals(this.state.apiData)
             })
         }
@@ -133,6 +134,7 @@ class Graph extends React.Component{
                 apiData: this.props.dataObject,
                 isLoading: true
             },()=>{
+                // console.log("Is loading: ",this.state.isLoading)
                 this.prepareDataforVisuals(this.state.apiData)
             })
         }else{
@@ -211,26 +213,14 @@ class Graph extends React.Component{
         // console.log(this.state.dataObject)
         const {myChart} = this.state;      
         return (
-            <React.Fragment>
+            <div>
                 {this.state.isLoading?
-                    <div>
-                        <div class="spinner-border text-warning" role="status">
-                            <span class="sr-only"></span>
-                        </div>
-                        <p>Please wait, your chart is loading.</p>
-                    </div>:
-                     null
-                    }
-                {this.state.apiData.length !== 0?
-                <div>
-                    <HighchartsReact highcharts = {Highcharts} options={myChart}/>: 
+                 <div class="spinner-border text-warning" role="status">
+                    <span class="sr-only">Loading...</span>
                 </div>
-                :
-                <div class="alert alert-danger" role="alert">
-                Sorry, no data available for the selected option.
-              </div>
-              }
-            </React.Fragment>
+               : null}
+                <HighchartsReact highcharts = {Highcharts} options={myChart}/>
+            </div>
         )
     }
 }

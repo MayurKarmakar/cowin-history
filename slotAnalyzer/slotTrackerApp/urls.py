@@ -10,5 +10,6 @@ router.register(r'district_data', views.DistrictWiseFilteredDataView, basename='
 router.register(r'pincode', views.PincodeWiseFilteredDataView, basename='PincodeWiseFilteredDataView')
 router.register(r'center_name', views.CenterNameWiseFilteredDataView, basename='CenterNameWiseFilteredDataView')
 router.register(r'date/range_filter', views.DateRangeWiseFilteredDataView, basename='DateRangeWiseFilteredDataView')
+router.register(r'center/data', views.VaccinationCenterDataView, basename='VaccinationCenterDataView')
 
 urlpatterns = router.urls
