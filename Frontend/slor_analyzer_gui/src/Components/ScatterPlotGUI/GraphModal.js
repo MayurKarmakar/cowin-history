@@ -477,8 +477,9 @@ class GraphModal extends React.Component{
                 selectedState: '',
                 selectedStateName: '',
                 inputPincode: '',
+                selectedCenterName: '',
                 showOverlay: true,
-
+                selectedCenter: null,
                 searchMode: 'state-dist'
 
             }, ()=>{
@@ -496,8 +497,10 @@ class GraphModal extends React.Component{
                 selectedStateId: '',
                 selectedStateName: '',
                 selectedDistrict: null,
+                selectedCenterName: '',
                 inputPincode: '', 
-                showOverlay: true,           
+                showOverlay: true,   
+                selectedCenter: null,        
                 searchMode: 'center'
 
             }, ()=>{
@@ -514,7 +517,9 @@ class GraphModal extends React.Component{
                 inputPincode: '',
                 selectedDistrictId: '',
                 selectedDistrict: null,
+                selectedCenterName: '',
                 showOverlay: true,
+                selectedCenter: null,
                 searchMode: 'pincode'
 
             }, ()=>{
