@@ -125,6 +125,16 @@ class Graph extends React.Component{
                 this.prepareDataforVisuals(this.state.apiData)
             })
         }
+
+        if (prevProps != this.props){
+            this.setState({
+                myChart: {
+                    title: {
+                        text: this.createChartTitle()
+                    }
+                }
+            })
+        }
     }
     
     createChartTitle = () => {
