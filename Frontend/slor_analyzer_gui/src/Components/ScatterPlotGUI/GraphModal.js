@@ -216,7 +216,7 @@ class GraphModal extends React.Component{
                 return
             }
     
-            urlPath = `http://localhost:8000/slots/district_data/?district_id=${selectedDistrictId}`
+            urlPath = `https://api.cowinhistory.com/slots/district_data/?district_id=${selectedDistrictId}`
         }
         if (searchMode === 'center') {
             if (!selectedCenterName) {
@@ -226,7 +226,7 @@ class GraphModal extends React.Component{
                 return
             }
 
-            urlPath = `http://localhost:8000/slots/center/data/?district_id=${selectedDistrictId}&center_name=${selectedCenterName}`
+            urlPath = `https://api.cowinhistory.com/slots/center/data/?district_id=${selectedDistrictId}&center_name=${selectedCenterName}`
         }
         if (searchMode === 'pincode') {
             if (!inputPincode) {
@@ -245,7 +245,7 @@ class GraphModal extends React.Component{
                 return
             }
 
-            urlPath = `http://localhost:8000/slots/pincode/?pincode=${inputPincode}`
+            urlPath = `https://api.cowinhistory.com/slots/pincode/?pincode=${inputPincode}`
         }
 
 
