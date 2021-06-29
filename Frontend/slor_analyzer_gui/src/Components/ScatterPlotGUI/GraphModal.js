@@ -359,7 +359,7 @@ class GraphModal extends React.Component{
     loadOptions =async (textInput, callback) => {
         let collectedMatchedData = null
         if(textInput.length >= 3){
-            await axios.get(`https://api.cowinhistory.com/slots/center_name?state_id=15&center_name_like=${textInput}`).then(res=>{
+            await axios.get(`https://api.cowinhistory.com/slots/center_name?state_id=${this.state.selectedStateId}&center_name_like=${textInput}`).then(res=>{
                 collectedMatchedData = res.data
             }).catch(err=>{
                 console.log(err)
