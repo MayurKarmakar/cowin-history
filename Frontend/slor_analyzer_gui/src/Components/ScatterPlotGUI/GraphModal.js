@@ -19,10 +19,19 @@ const jhakhandDistrictData = {"districts":[{"district_id":242,"district_name":"B
 const odishaDistrictId = 26;
 const odishaDistrictdata = {"districts":[{"district_id":445,"district_name":"Angul"},{"district_id":448,"district_name":"Balangir"},{"district_id":447,"district_name":"Balasore"},{"district_id":472,"district_name":"Bargarh"},{"district_id":454,"district_name":"Bhadrak"},{"district_id":468,"district_name":"Boudh"},{"district_id":457,"district_name":"Cuttack"},{"district_id":473,"district_name":"Deogarh"},{"district_id":458,"district_name":"Dhenkanal"},{"district_id":467,"district_name":"Gajapati"},{"district_id":449,"district_name":"Ganjam"},{"district_id":459,"district_name":"Jagatsinghpur"},{"district_id":460,"district_name":"Jajpur"},{"district_id":474,"district_name":"Jharsuguda"},{"district_id":464,"district_name":"Kalahandi"},{"district_id":450,"district_name":"Kandhamal"},{"district_id":461,"district_name":"Kendrapara"},{"district_id":455,"district_name":"Kendujhar"},{"district_id":446,"district_name":"Khurda"},{"district_id":451,"district_name":"Koraput"},{"district_id":469,"district_name":"Malkangiri"},{"district_id":456,"district_name":"Mayurbhanj"},{"district_id":470,"district_name":"Nabarangpur"},{"district_id":462,"district_name":"Nayagarh"},{"district_id":465,"district_name":"Nuapada"},{"district_id":463,"district_name":"Puri"},{"district_id":471,"district_name":"Rayagada"},{"district_id":452,"district_name":"Sambalpur"},{"district_id":466,"district_name":"Subarnapur"},{"district_id":453,"district_name":"Sundargarh"}],"ttl":24}
 
+const karnatakaDistrictId = 16;
+const karnatakaDistrictData = {"districts":[{"district_id":270,"district_name":"Bagalkot"},{"district_id":276,"district_name":"Bangalore Rural"},{"district_id":265,"district_name":"Bangalore Urban"},{"district_id":294,"district_name":"BBMP"},{"district_id":264,"district_name":"Belgaum"},{"district_id":274,"district_name":"Bellary"},{"district_id":272,"district_name":"Bidar"},{"district_id":271,"district_name":"Chamarajanagar"},{"district_id":273,"district_name":"Chikamagalur"},{"district_id":291,"district_name":"Chikkaballapur"},{"district_id":268,"district_name":"Chitradurga"},{"district_id":269,"district_name":"Dakshina Kannada"},{"district_id":275,"district_name":"Davanagere"},{"district_id":278,"district_name":"Dharwad"},{"district_id":280,"district_name":"Gadag"},{"district_id":267,"district_name":"Gulbarga"},{"district_id":289,"district_name":"Hassan"},{"district_id":279,"district_name":"Haveri"},{"district_id":283,"district_name":"Kodagu"},{"district_id":277,"district_name":"Kolar"},{"district_id":282,"district_name":"Koppal"},{"district_id":290,"district_name":"Mandya"},{"district_id":266,"district_name":"Mysore"},{"district_id":284,"district_name":"Raichur"},{"district_id":292,"district_name":"Ramanagara"},{"district_id":287,"district_name":"Shimoga"},{"district_id":288,"district_name":"Tumkur"},{"district_id":286,"district_name":"Udupi"},{"district_id":281,"district_name":"Uttar Kannada"},{"district_id":293,"district_name":"Vijayapura"},{"district_id":285,"district_name":"Yadgir"}],"ttl":24}
+
+// const tamilNaduDistrictId = 31
+// const tamilNaduDistrictData = {"districts":[{"district_id":779,"district_name":"Aranthangi"},{"district_id":555,"district_name":"Ariyalur"},{"district_id":578,"district_name":"Attur"},{"district_id":565,"district_name":"Chengalpet"},{"district_id":571,"district_name":"Chennai"},{"district_id":778,"district_name":"Cheyyar"},{"district_id":539,"district_name":"Coimbatore"},{"district_id":547,"district_name":"Cuddalore"},{"district_id":566,"district_name":"Dharmapuri"},{"district_id":556,"district_name":"Dindigul"},{"district_id":563,"district_name":"Erode"},{"district_id":552,"district_name":"Kallakurichi"},{"district_id":557,"district_name":"Kanchipuram"},{"district_id":544,"district_name":"Kanyakumari"},{"district_id":559,"district_name":"Karur"},{"district_id":780,"district_name":"Kovilpatti"},{"district_id":562,"district_name":"Krishnagiri"},{"district_id":540,"district_name":"Madurai"},{"district_id":576,"district_name":"Nagapattinam"},{"district_id":558,"district_name":"Namakkal"},{"district_id":577,"district_name":"Nilgiris"},{"district_id":564,"district_name":"Palani"},{"district_id":573,"district_name":"Paramakudi"},{"district_id":570,"district_name":"Perambalur"},{"district_id":575,"district_name":"Poonamallee"},{"district_id":546,"district_name":"Pudukkottai"},{"district_id":567,"district_name":"Ramanathapuram"},{"district_id":781,"district_name":"Ranipet"},{"district_id":545,"district_name":"Salem"},{"district_id":561,"district_name":"Sivaganga"},{"district_id":580,"district_name":"Sivakasi"},{"district_id":551,"district_name":"Tenkasi"},{"district_id":541,"district_name":"Thanjavur"},{"district_id":569,"district_name":"Theni"},{"district_id":554,"district_name":"Thoothukudi (Tuticorin)"},{"district_id":560,"district_name":"Tiruchirappalli"},{"district_id":548,"district_name":"Tirunelveli"},{"district_id":550,"district_name":"Tirupattur"},{"district_id":568,"district_name":"Tiruppur"},{"district_id":572,"district_name":"Tiruvallur"},{"district_id":553,"district_name":"Tiruvannamalai"},{"district_id":574,"district_name":"Tiruvarur"},{"district_id":543,"district_name":"Vellore"},{"district_id":542,"district_name":"Viluppuram"},{"district_id":549,"district_name":"Virudhunagar"}],"ttl":24}
+
 const districtsData = {}
 
 districtsData[jharkhandDistrictId] = jhakhandDistrictData
 districtsData[odishaDistrictId] = odishaDistrictdata
+districtsData[karnatakaDistrictId] = karnatakaDistrictData
+// districtsData[tamilNaduDistrictId] = tamilNaduDistrictData
+
 
 const createStateNameMap = () => {
     const stateNameMap = {}
@@ -531,6 +540,7 @@ class GraphModal extends React.Component{
     }
 
     componentDidMount = () => {
+        window.scrollTo(0, 0)
         document.title = 'Cowinhistory'
         this.updateChart()
         this.setState({
@@ -564,12 +574,19 @@ class GraphModal extends React.Component{
                 <div className='row justify-content-center d-lg-block m-2 m-md-5 m-lg-5'>
                     <h1>COVID-19 Vaccine History</h1>
                     <div className='container-fluid p-3 mb-5 bg-white rounded mt-3'>
+                        <p><strong>Cowin History</strong> provides you with historical data for the COVID-19 vaccine's slot availability events. This website shows you 
+                            the date and time when vaccines came available for vaccination, enabling you for successful vaccination slot booking. To see slot availability 
+                            event data for a particular <strong>district</strong>, <strong>vaccination center</strong>, or for a particular <strong>pincode</strong> please
+                            select the appropriate search menu and make appropriate selections on filter options. These data can even be filterd by date,
+                            selectable from the <strong>date</strong> filter menu.
+                        </p>
+                        <hr/>
                         <div className='row'> 
                             <div className='col-lg-3 offset-1'>
 
                             </div>
                             <h5 class="d-flex fw-bold">Search by:</h5>
-                            <div className='col-lg-3 col-md-12 col-sm-6 pt-4 '>
+                            <div className='col-lg-3 col-md-12 col-sm-6 pt-4 pb-3'>
                                 <nav class="nav flex-sm-row flex-lg-row flex-row flex-md-column nav-pills d-flex-xs justify-content-center">
                                     <NavLink class={this.state.stateDistTabClass} aria-current="page" id='state-dist' onClick={this.activeTabHandler} to="/">District</NavLink>
                                     <NavLink class={this.state.distCenterTabClass} id='center' onClick={this.activeTabHandler} to="/">Center Name</NavLink>
@@ -645,11 +662,8 @@ class GraphModal extends React.Component{
                                 </div>
                                 }
                             </div>
-                            <div className='col'>
-                            </div>
                             <div className='col pt-4'>
-
-                                <div className='d-flex-xs d-flex mb-2'>
+                                <div className='d-flex-xs d-flex justify-content-lg-center justify-content-sm-center mb-2'>
                                     <h5 className='fw-bold'>Select date range: </h5>
                                 </div>
                                 <DateRangePicker
@@ -678,8 +692,11 @@ class GraphModal extends React.Component{
                                     //value={this.state.dateRange} 
                                     size='lg'
                                 />
+                            </div>
+                            <div className='col pt-4'>
+
                         </div>
-                        <div className='row'>
+                        <div className='row pb-5'>
                             <div className='col-lg-12 col-sm-12 col-md-12 justify-content-between mt-5'>
                                 <hr/>
                                 {this.state.error ? 
@@ -728,13 +745,12 @@ class GraphModal extends React.Component{
                                 // <ScatterGraph dataObject={this.state.collectedData} isShowOverlayTrue={this.state.showOverlay}/>
                                 } */}
 
+                                </div>
                             </div>
                         </div>
-                    </div>
-                </div>        
-                <hr/>
-                
-            </div>
+                    </div>        
+                    {/* <hr/> */}
+                </div>
             </React.Fragment>
         )
     }

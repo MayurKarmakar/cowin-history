@@ -2,7 +2,7 @@ from logging import error
 from typing import Final
 from django.core.management.base import BaseCommand, CommandError
 from telethon.tl.types import PeerUser
-from slotTrackerApp.models import SlotAvailabilityEvent
+from slotTrackerApp.models import SlotAvailabilityEvent, BBMP_DIST_MESSAGES
 import re
 from telethon import TelegramClient, events, sync
 from datetime import  datetime
@@ -23,57 +23,88 @@ print("NOW time: ",int(with_timezone.timestamp()))
 print("TimeZOne info: ",with_timezone.tzinfo)
 
 entity_object = {
-    '1458101449': {'state_id': 26, 'district_id': 446},
-    '1174734037': {'state_id': 26, 'district_id': 457},
-    '1234268776': {'state_id': 26, 'district_id': 458},
-    '1335172164': {'state_id': 26, 'district_id': 459},
-    '1327841172': {'state_id': 26, 'district_id': 471},
-    '1491978120': {'state_id': 26, 'district_id': 452},
-    '1150676780': {'state_id': 26, 'district_id': 474},
-    '1287143551': {'state_id': 26, 'district_id': 456},
-    '1223213833': {'state_id': 26, 'district_id': 460},
-    '1225302829': {'state_id': 26, 'district_id': 462},
-    '1302631546': {'state_id': 26, 'district_id': 454},
-    '1483515512': {'state_id': 26, 'district_id': 453},
-    '1491748967': {'state_id': 26, 'district_id': 450},
-    '1482449374': {'state_id': 26, 'district_id': 461},
-    '1205688992': {'state_id': 26, 'district_id': 449},
-    '1407203820': {'state_id': 26, 'district_id': 473},
-    '1161389537': {'state_id': 26, 'district_id': 463},
-    '1437371935': {'state_id': 26, 'district_id': 455},
-    '1160146914': {'state_id': 26, 'district_id': 464},
-    '1143077056': {'state_id': 26, 'district_id': 466},
-    '1300724017': {'state_id': 26, 'district_id': 465},
-    '1195547279': {'state_id': 26, 'district_id': 467},
-    '1223432483': {'state_id': 26, 'district_id': 451},
-    '1259182036': {'state_id': 26, 'district_id': 472},
-    '1385443444': {'state_id': 26, 'district_id': 445},
-    '1340261201': {'state_id': 26, 'district_id': 447},
-    '1282437886': {'state_id': 26, 'district_id': 473},
+    # '1458101449': {'state_id': 26, 'district_id': 446},
+    # '1174734037': {'state_id': 26, 'district_id': 457},
+    # '1234268776': {'state_id': 26, 'district_id': 458},
+    # '1335172164': {'state_id': 26, 'district_id': 459},
+    # '1327841172': {'state_id': 26, 'district_id': 471},
+    # '1491978120': {'state_id': 26, 'district_id': 452},
+    # '1150676780': {'state_id': 26, 'district_id': 474},
+    # '1287143551': {'state_id': 26, 'district_id': 456},
+    # '1223213833': {'state_id': 26, 'district_id': 460},
+    # '1225302829': {'state_id': 26, 'district_id': 462},
+    # '1302631546': {'state_id': 26, 'district_id': 454},
+    # '1483515512': {'state_id': 26, 'district_id': 453},
+    # '1491748967': {'state_id': 26, 'district_id': 450},
+    # '1482449374': {'state_id': 26, 'district_id': 461},
+    # '1205688992': {'state_id': 26, 'district_id': 449},
+    # '1407203820': {'state_id': 26, 'district_id': 473},
+    # '1161389537': {'state_id': 26, 'district_id': 463},
+    # '1437371935': {'state_id': 26, 'district_id': 455},
+    # '1160146914': {'state_id': 26, 'district_id': 464},
+    # '1143077056': {'state_id': 26, 'district_id': 466},
+    # '1300724017': {'state_id': 26, 'district_id': 465},
+    # '1195547279': {'state_id': 26, 'district_id': 467},
+    # '1223432483': {'state_id': 26, 'district_id': 451},
+    # '1259182036': {'state_id': 26, 'district_id': 472},
+    # '1385443444': {'state_id': 26, 'district_id': 445},
+    # '1340261201': {'state_id': 26, 'district_id': 447},
+    # '1282437886': {'state_id': 26, 'district_id': 473},
 
     # Jharkhand Districts
 
-    '1373832298': {"state_id": 15, "district_id": 248},
-    '1436135357': {'state_id': 15, 'district_id': 255},
-    '1490575529': {'state_id': 15, 'district_id': 240},
-    '1485724325': {'state_id': 15, 'district_id': 257},
-    '1342637587': {'state_id': 15, 'district_id': 252},
-    '1381069302': {'state_id': 15, 'district_id': 258},
-    '1350006700': {'state_id': 15, 'district_id': 259},
-    '1349221944': {'state_id': 15, 'district_id': 251},
-    '1414064507': {'state_id': 15, 'district_id': 263},
-    '1314539510': {'state_id': 15, 'district_id': 242},
-    '1477196992': {'state_id': 15, 'district_id': 254},
-    '1205302785': {'state_id': 15, 'district_id': 260},
-    '1218881293': {'state_id': 15, 'district_id': 244},
-    '1335478405': {'state_id': 15, 'district_id': 245},
-    '1316326585': {'state_id': 15, 'district_id': 250},
-    '1192503055': {'state_id': 15, 'district_id': 256},
-    '1210771070': {'state_id': 15, 'district_id': 243},
-    '1404119583': {'state_id': 15, 'district_id': 247},
-    '1345841740': {'state_id': 15, 'district_id': 241},
-    '1405922529': {'state_id': 15, 'district_id': 246},
-    '1282437886': {'state_id': 15, 'district_id': 253},
+    # '1373832298': {"state_id": 15, "district_id": 248},
+    # '1436135357': {'state_id': 15, 'district_id': 255},
+    # '1490575529': {'state_id': 15, 'district_id': 240},
+    # '1485724325': {'state_id': 15, 'district_id': 257},
+    # '1342637587': {'state_id': 15, 'district_id': 252},
+    # '1381069302': {'state_id': 15, 'district_id': 258},
+    # '1350006700': {'state_id': 15, 'district_id': 259},
+    # '1349221944': {'state_id': 15, 'district_id': 251},
+    # '1414064507': {'state_id': 15, 'district_id': 263},
+    # '1314539510': {'state_id': 15, 'district_id': 242},
+    # '1477196992': {'state_id': 15, 'district_id': 254},
+    # '1205302785': {'state_id': 15, 'district_id': 260},
+    # '1218881293': {'state_id': 15, 'district_id': 244},
+    # '1335478405': {'state_id': 15, 'district_id': 245},
+    # '1316326585': {'state_id': 15, 'district_id': 250},
+    # '1192503055': {'state_id': 15, 'district_id': 256},
+    # '1210771070': {'state_id': 15, 'district_id': 243},
+    # '1404119583': {'state_id': 15, 'district_id': 247},
+    # '1345841740': {'state_id': 15, 'district_id': 241},
+    # '1405922529': {'state_id': 15, 'district_id': 246},
+    # '1282437886': {'state_id': 15, 'district_id': 253},
+
+    #Karnataka Districts
+
+    # '1243933312': {"district_id":294,"district_name":"Bengaluru BBMP"},
+    '1142602708': {"district_id":268,"state_id":16},
+    '1230461833': {"district_id":289,"state_id":16},
+    '1194665890': {"district_id":264,"state_id":16},
+    '1400831953': {"district_id":273,"state_id":16},
+    '1471693088': {"district_id":274,"state_id":16},
+    '1379459105': {"district_id":276,"state_id":16},
+    '1346379632': {"district_id":270,"state_id":16},
+    '1481737560': {"district_id":269,"state_id":16},
+    '1168911208': {"district_id":281,"state_id":16},
+    '1165622289': {"district_id":266,"state_id":16},
+    '1431477469': {"district_id":286,"state_id":16},
+    '1265609608': {"district_id":293,"state_id":16},
+    '1421132026': {"district_id":282,"state_id":16},
+    '1365373461': {"district_id":275,"state_id":16},
+    '1265669375': {"district_id":287,"state_id":16},
+    '1428885619': {"district_id":288,"state_id":16},
+    '1227665370': {"district_id":265,"state_id":16},
+    '1390374627': {"district_id":267,"state_id":16},
+    '1266606644': {"district_id":272,"state_id":16},
+    '1203776728': {"district_id":290,"state_id":16},
+    '1283779031': {"district_id":283,"state_id":16},
+    '1174895370': {"district_id":280,"state_id":16},
+    '1210755328': {"district_id":284,"state_id":16},
+    '1489132122': {"district_id":292,"state_id":16},
+    '1213319051': {"district_id":279,"state_id":16},
+    '1300650136': {"district_id":278,"state_id":16},
+    '1275672800': {"district_id":271,"state_id":16},
 }
 
 months_integer_values_dict = {
@@ -91,7 +122,7 @@ months_integer_values_dict = {
     'Dec': 12
 }
 
-print("CUrrent entity: ", entity_object['1458101449']['state_id'])
+# print("CUrrent entity: ", entity_object['1458101449']['state_id'])
 data_dict = {
     'state_id': None,
     'vaccine': [],
@@ -111,6 +142,73 @@ client = TelegramClient('slot_tracker', api_id, api_hash)
 client.start()
 client.get_dialogs()
 def parse_data_from_message_object(message_object, entity_id):
+
+    parsed_data = {
+        'event_details_json': {
+            'session': []
+        }
+    }
+
+    # parsed_data['state_id'] = entity_object[entity_id]['state_id']
+    # parsed_data['district_id'] = entity_object[entity_id]['district_id']
+
+    print('Error Message: ', message_object)
+    parsed_data['timestamp'] = datetime.fromtimestamp(message_object.date.timestamp())
+    splited_message_list = message_object.message.split('\n')
+    
+    if not re.match('^Vaccination+\s', splited_message_list[0]):
+        return
+    print("splited_message_list: ",splited_message_list)
+
+    # if entity_id == '1243933312':
+    #     for item in splited_message_list:
+    #         print("Item: ",item)
+    #         if re.search(r'\d{6}', item):
+    #             parsed_data['pincode'] = item
+    #         if ('COVISHIELD' in item) or ('Covishield' in item) or ('covishield' in item):
+    #             parsed_data['vaccine'] = 'COVISHIELD'
+    #             splitted_item_list = item.split(' ')
+    #             if (splitted_item_list[1] == '1st') or (splitted_item_list[1] == '1ST'):
+    #                 parsed_data['available_capacity_dose1'] = 0
+    #                 parsed_data['available_capacity_dose2'] = -1
+    #             if (splitted_item_list[1] == '2nd') or (splitted_item_list[1] == '2ND'):
+    #                 parsed_data['available_capacity_dose1'] = -1
+    #                 parsed_data['available_capacity_dose2'] = 0
+    #         elif ('COVAXIN' in item) or ('Covaxin' in item) or ('covaxin' in item):
+    #             parsed_data['vaccine'] = 'COVAXIN'
+    #             splitted_item_list = item.split(' ')
+    #             if (splitted_item_list[1] == '1st') or (splitted_item_list[1] == '1ST'):
+    #                 parsed_data['available_capacity_dose1'] = 0
+    #                 parsed_data['available_capacity_dose2'] = -1
+    #             if (splitted_item_list[1] == '2nd') or (splitted_item_list[1] == '2ND'):
+    #                 parsed_data['available_capacity_dose1'] = -1
+    #                 parsed_data['available_capacity_dose2'] = 0
+            # if ('Dose' or 'dose' in item):
+            #     dose_number_start_idx = re.search(r'[1-9]+[a-zA-Z]', item).start()
+            #     parsed_data['vaccine'] = item[:dose_number_start_idx].strip()
+
+    #         if ('SLOTS' in item) or ('slots' in item) or ('Slots' in item):
+    #             itemIdx = splited_message_list.index(item)
+    #             slots_quantity_message_list = item.split(' ')
+    #             if (slots_quantity_message_list[0] != 'SLOTS') or (slots_quantity_message_list[0] != 'slots') or (slots_quantity_message_list[0] != 'Slots'):
+    #                 if parsed_data['available_capacity_dose1'] == 0:
+    #                     parsed_data['available_capacity_dose1'] = slots_quantity_message_list[0]
+    #                 if parsed_data['available_capacity_dose2'] == 0:
+    #                     parsed_data['available_capacity_dose2'] = slots_quantity_message_list[0]
+    #             elif (slots_quantity_message_list[0] == 'SLOTS') or (slots_quantity_message_list[0] == 'slots') or (slots_quantity_message_list[0] == 'Slots'):
+    #                 if parsed_data['available_capacity_dose1'] == 0:
+    #                     parsed_data['available_capacity_dose1'] = slots_quantity_message_list[1]
+    #                 if parsed_data['available_capacity_dose2'] == 0:
+    #                     parsed_data['available_capacity_dose2'] = slots_quantity_message_list[1]
+    #             parsed_data['center_name'] = splited_message_list[itemIdx+1]
+        
+                
+            
+    #         print("Printing Extracted data: ")
+        
+    # for item in parsed_data:
+    #     print('{}: {}'.format(item, parsed_data[item]))
+
     
     print("Message object: ",message_object)
     message_obj_id = message_object.id
@@ -223,9 +321,9 @@ def parse_data_from_message_object(message_object, entity_id):
         print("json_string_from_dict", event_details_json_data)
         print("json_string_from_dict type", type(event_details_json_data))
 
-        # for item in parsed_data:
-        #     print(item + ': {}'.format(parsed_data[item]))
-        #     print("\n")
+        for item in parsed_data:
+            print(item + ': {}'.format(parsed_data[item]))
+            print("\n")
 
         try:
             # print("Error Item: ", message_object)
@@ -246,6 +344,7 @@ def parse_data_from_message_object(message_object, entity_id):
 
             # slot_event_record.id = str(message_obj_id)
             event_id = str(parsed_data['timestamp'])+str(parsed_data['district_id'])
+            event_id.replace(' ', '_')
             slot_event_record.id = event_id
             slot_event_record.save()
             print("slot_event_record id: ",slot_event_record.id)
@@ -258,13 +357,29 @@ def parse_data_from_message_object(message_object, entity_id):
 
 def identify_data_from_message_object(message_object, entity_id):
 
-    print("Message object: ", message_object)
+    # print("Message Object: ", message_object)
+    # for item in message_object:
+        # print("Item: ", item)
+        # try:
+        #     event_message = BBMP_DIST_MESSAGES(event_message=item.message, timestamp = item.date)
+        #     event_message.save()
+        #     print("Insertion success")
+        # except:
+        #     print("Error item: ", item.message)
+
+        # parse_data_from_message_object(item, entity_id)
+    # for item in message_object:
+    #     print(item.message)
+    #     print()
     for item in message_object:
         if item.message is None:
             continue
 
         parse_data_from_message_object(item, entity_id)
-        
+
+# current_entitiy = client.get_entity(int('1243933312'))
+# message_object = client.get_messages(current_entitiy, limit=None)
+# identify_data_from_message_object(message_object, '1243933312')
 
 for entity in entity_object:
     current_entitiy = client.get_entity(int(entity))

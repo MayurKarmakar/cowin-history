@@ -17,3 +17,9 @@ class SlotAvailabilityEvent(models.Model):
 
     def __str__(self):
         return self.center_name
+
+class BBMP_DIST_MESSAGES(models.Model):
+    event_message = models.CharField(max_length=10000)
+    timestamp = models.DateTimeField()
+    def __str__(self):
+        return self.event_message
