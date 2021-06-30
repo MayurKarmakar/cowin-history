@@ -18,8 +18,10 @@ class SlotAvailabilityEvent(models.Model):
     def __str__(self):
         return self.center_name
 
-class BBMP_DIST_MESSAGES(models.Model):
+class RawMessages(models.Model):
+    id = models.CharField(primary_key=True, max_length=40, editable=True)
     event_message = models.CharField(max_length=10000)
     timestamp = models.DateTimeField()
+    district_id = models.CharField(max_length=20)
     def __str__(self):
         return self.event_message

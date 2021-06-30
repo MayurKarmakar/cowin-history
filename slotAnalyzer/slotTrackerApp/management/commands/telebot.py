@@ -2,7 +2,7 @@ from logging import error
 from typing import Final
 from django.core.management.base import BaseCommand, CommandError
 from telethon.tl.types import PeerUser
-from slotTrackerApp.models import SlotAvailabilityEvent, BBMP_DIST_MESSAGES
+from slotTrackerApp.models import RawMessages, SlotAvailabilityEvent
 import re
 from telethon import TelegramClient, events, sync
 from datetime import  datetime
@@ -23,57 +23,57 @@ print("NOW time: ",int(with_timezone.timestamp()))
 print("TimeZOne info: ",with_timezone.tzinfo)
 
 entity_object = {
-    # '1458101449': {'state_id': 26, 'district_id': 446},
-    # '1174734037': {'state_id': 26, 'district_id': 457},
-    # '1234268776': {'state_id': 26, 'district_id': 458},
-    # '1335172164': {'state_id': 26, 'district_id': 459},
-    # '1327841172': {'state_id': 26, 'district_id': 471},
-    # '1491978120': {'state_id': 26, 'district_id': 452},
-    # '1150676780': {'state_id': 26, 'district_id': 474},
-    # '1287143551': {'state_id': 26, 'district_id': 456},
-    # '1223213833': {'state_id': 26, 'district_id': 460},
-    # '1225302829': {'state_id': 26, 'district_id': 462},
-    # '1302631546': {'state_id': 26, 'district_id': 454},
-    # '1483515512': {'state_id': 26, 'district_id': 453},
-    # '1491748967': {'state_id': 26, 'district_id': 450},
-    # '1482449374': {'state_id': 26, 'district_id': 461},
-    # '1205688992': {'state_id': 26, 'district_id': 449},
-    # '1407203820': {'state_id': 26, 'district_id': 473},
-    # '1161389537': {'state_id': 26, 'district_id': 463},
-    # '1437371935': {'state_id': 26, 'district_id': 455},
-    # '1160146914': {'state_id': 26, 'district_id': 464},
-    # '1143077056': {'state_id': 26, 'district_id': 466},
-    # '1300724017': {'state_id': 26, 'district_id': 465},
-    # '1195547279': {'state_id': 26, 'district_id': 467},
-    # '1223432483': {'state_id': 26, 'district_id': 451},
-    # '1259182036': {'state_id': 26, 'district_id': 472},
-    # '1385443444': {'state_id': 26, 'district_id': 445},
-    # '1340261201': {'state_id': 26, 'district_id': 447},
-    # '1282437886': {'state_id': 26, 'district_id': 473},
+    '1458101449': {'state_id': 26, 'district_id': 446},
+    '1174734037': {'state_id': 26, 'district_id': 457},
+    '1234268776': {'state_id': 26, 'district_id': 458},
+    '1335172164': {'state_id': 26, 'district_id': 459},
+    '1327841172': {'state_id': 26, 'district_id': 471},
+    '1491978120': {'state_id': 26, 'district_id': 452},
+    '1150676780': {'state_id': 26, 'district_id': 474},
+    '1287143551': {'state_id': 26, 'district_id': 456},
+    '1223213833': {'state_id': 26, 'district_id': 460},
+    '1225302829': {'state_id': 26, 'district_id': 462},
+    '1302631546': {'state_id': 26, 'district_id': 454},
+    '1483515512': {'state_id': 26, 'district_id': 453},
+    '1491748967': {'state_id': 26, 'district_id': 450},
+    '1482449374': {'state_id': 26, 'district_id': 461},
+    '1205688992': {'state_id': 26, 'district_id': 449},
+    '1407203820': {'state_id': 26, 'district_id': 473},
+    '1161389537': {'state_id': 26, 'district_id': 463},
+    '1437371935': {'state_id': 26, 'district_id': 455},
+    '1160146914': {'state_id': 26, 'district_id': 464},
+    '1143077056': {'state_id': 26, 'district_id': 466},
+    '1300724017': {'state_id': 26, 'district_id': 465},
+    '1195547279': {'state_id': 26, 'district_id': 467},
+    '1223432483': {'state_id': 26, 'district_id': 451},
+    '1259182036': {'state_id': 26, 'district_id': 472},
+    '1385443444': {'state_id': 26, 'district_id': 445},
+    '1340261201': {'state_id': 26, 'district_id': 447},
+    '1282437886': {'state_id': 26, 'district_id': 473},
 
     # Jharkhand Districts
 
-    # '1373832298': {"state_id": 15, "district_id": 248},
-    # '1436135357': {'state_id': 15, 'district_id': 255},
-    # '1490575529': {'state_id': 15, 'district_id': 240},
-    # '1485724325': {'state_id': 15, 'district_id': 257},
-    # '1342637587': {'state_id': 15, 'district_id': 252},
-    # '1381069302': {'state_id': 15, 'district_id': 258},
-    # '1350006700': {'state_id': 15, 'district_id': 259},
-    # '1349221944': {'state_id': 15, 'district_id': 251},
-    # '1414064507': {'state_id': 15, 'district_id': 263},
-    # '1314539510': {'state_id': 15, 'district_id': 242},
-    # '1477196992': {'state_id': 15, 'district_id': 254},
-    # '1205302785': {'state_id': 15, 'district_id': 260},
-    # '1218881293': {'state_id': 15, 'district_id': 244},
-    # '1335478405': {'state_id': 15, 'district_id': 245},
-    # '1316326585': {'state_id': 15, 'district_id': 250},
-    # '1192503055': {'state_id': 15, 'district_id': 256},
-    # '1210771070': {'state_id': 15, 'district_id': 243},
-    # '1404119583': {'state_id': 15, 'district_id': 247},
-    # '1345841740': {'state_id': 15, 'district_id': 241},
-    # '1405922529': {'state_id': 15, 'district_id': 246},
-    # '1282437886': {'state_id': 15, 'district_id': 253},
+    '1373832298': {"state_id": 15, "district_id": 248},
+    '1436135357': {'state_id': 15, 'district_id': 255},
+    '1490575529': {'state_id': 15, 'district_id': 240},
+    '1485724325': {'state_id': 15, 'district_id': 257},
+    '1342637587': {'state_id': 15, 'district_id': 252},
+    '1381069302': {'state_id': 15, 'district_id': 258},
+    '1350006700': {'state_id': 15, 'district_id': 259},
+    '1349221944': {'state_id': 15, 'district_id': 251},
+    '1414064507': {'state_id': 15, 'district_id': 263},
+    '1314539510': {'state_id': 15, 'district_id': 242},
+    '1477196992': {'state_id': 15, 'district_id': 254},
+    '1205302785': {'state_id': 15, 'district_id': 260},
+    '1218881293': {'state_id': 15, 'district_id': 244},
+    '1335478405': {'state_id': 15, 'district_id': 245},
+    '1316326585': {'state_id': 15, 'district_id': 250},
+    '1192503055': {'state_id': 15, 'district_id': 256},
+    '1210771070': {'state_id': 15, 'district_id': 243},
+    '1404119583': {'state_id': 15, 'district_id': 247},
+    '1345841740': {'state_id': 15, 'district_id': 241},
+    '1405922529': {'state_id': 15, 'district_id': 246},
+    '1282437886': {'state_id': 15, 'district_id': 253},
 
     #Karnataka Districts
 
@@ -356,16 +356,25 @@ def parse_data_from_message_object(message_object, entity_id):
         
 
 def identify_data_from_message_object(message_object, entity_id):
+    total = 0
+    failed_count = 0
 
     # print("Message Object: ", message_object)
     # for item in message_object:
         # print("Item: ", item)
-        # try:
-        #     event_message = BBMP_DIST_MESSAGES(event_message=item.message, timestamp = item.date)
-        #     event_message.save()
-        #     print("Insertion success")
-        # except:
-        #     print("Error item: ", item.message)
+    #     try:
+    #         event_message = RawMessages(event_message=item.message.encode().decode('unicode_escape'), timestamp = item.date, district_id='16')
+    #         event_message.id = str(item.date)+'_'+'16'
+    #         event_message.save()
+    #     except:
+    #         failed_count += 1
+
+    #     total += 1
+
+    #     if total % 1000 == 0:
+    #         print(total, " messages processed", "failed", failed_count)
+
+    # print(total, " messages processed", "failed", failed_count)
 
         # parse_data_from_message_object(item, entity_id)
     # for item in message_object:
@@ -384,14 +393,14 @@ def identify_data_from_message_object(message_object, entity_id):
 for entity in entity_object:
     current_entitiy = client.get_entity(int(entity))
     message_object = client.get_messages(current_entitiy, limit=None)
-    # identify_data_from_message_object(message_object, entity)
+    identify_data_from_message_object(message_object, entity)
 
 
 
 @client.on(events.NewMessage())
 async def handler(event):
     event_str = str(event)
-    print(event_str.Event)
+    # print(event_str.Event)
 
 
 client.run_until_disconnected()
