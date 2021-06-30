@@ -139,14 +139,14 @@ class Graph extends React.Component{
     
     createChartTitle = () => {
         let {stateName, districtName, centerName, pincode, searchMode} = this.props
-        let title = 'Vaccination slot availability analysis for'
+        let title = ''
 
         if (searchMode == 'state-dist'){
-            title += ` state: ${stateName} and district: ${districtName}`
+            title += ` <b>State</b>: ${stateName} and <b>District</b>: ${districtName}`
         }else if (searchMode === 'center'){
-            title += ` state: ${stateName} and center: ${centerName}`
+            title += ` <b>State</b>: ${stateName} and <b>Center</b>: ${centerName}`
         }else if (searchMode === 'pincode'){
-            title += ` pincode: ${pincode}`
+            title += ` <b>Pincode</b>: ${pincode}`
         }
 
         return title

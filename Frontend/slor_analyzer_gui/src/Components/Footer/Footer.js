@@ -42,7 +42,6 @@ export default function Footer(){
                         <div className='col-lg-4 col-md-3  d-flex justify-content-end flex-column align-self-start'>
                             <h4 className='font-weight-bold'>Contact us</h4>
                             <p><i className='fa fa-envelope mr-2'></i>Mail at:  support@cowinhistory.com</p>
-                            <p><i className='fa fa-phone mr-2'></i>Call on:  + 91 7250622143</p>
                         </div>
                         {/* <hr color='white'/> */}
                     </div>
