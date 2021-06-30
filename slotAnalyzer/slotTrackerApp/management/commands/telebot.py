@@ -343,7 +343,7 @@ def parse_data_from_message_object(message_object, entity_id):
                                                             event_details_json = event_details_json_data)
 
             # slot_event_record.id = str(message_obj_id)
-            event_id = str(parsed_data['timestamp'])+str(parsed_data['district_id'])
+            event_id = str(parsed_data['timestamp'])+ str(parsed_data['district_id'])
             event_id.replace(' ', '_')
             slot_event_record.id = event_id
             slot_event_record.save()
@@ -384,14 +384,14 @@ def identify_data_from_message_object(message_object, entity_id):
 for entity in entity_object:
     current_entitiy = client.get_entity(int(entity))
     message_object = client.get_messages(current_entitiy, limit=None)
-    identify_data_from_message_object(message_object, entity)
+    # identify_data_from_message_object(message_object, entity)
 
 
 
 @client.on(events.NewMessage())
 async def handler(event):
     event_str = str(event)
-    # print(event_str)
+    print(event_str.Event)
 
 
 client.run_until_disconnected()

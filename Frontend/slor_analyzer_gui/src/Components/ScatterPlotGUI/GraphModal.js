@@ -574,11 +574,8 @@ class GraphModal extends React.Component{
                 <div className='row justify-content-center d-lg-block m-2 m-md-5 m-lg-5'>
                     <h1>COVID-19 Vaccine History</h1>
                     <div className='container-fluid p-3 mb-5 bg-white rounded mt-3'>
-                        <p><strong>Cowin History</strong> provides you with historical data for the COVID-19 vaccine's slot availability events. This website shows you 
-                            the date and time when vaccines came available for vaccination, enabling you for successful vaccination slot booking. To see slot availability 
-                            event data for a particular <strong>district</strong>, <strong>vaccination center</strong>, or for a particular <strong>pincode</strong> please
-                            select the appropriate search menu and make appropriate selections on filter options. These data can even be filterd by date,
-                            selectable from the <strong>date</strong> filter menu.
+                        <p className='lead'>
+                            CowinHistory.com helps you to see the date and time of vaccine slot availability events in the past. We can use this data to predict the time when slots might be available for booking in future.
                         </p>
                         <hr/>
                         <div className='row'> 
@@ -606,6 +603,7 @@ class GraphModal extends React.Component{
                                                 isClearable={true}
                                                 onChange={this.onStateChange}
                                                 menuPortalTarget={document.body} 
+                                                placeholder='Select a state...'
                                                 styles={{ menuPortal: base => ({ ...base, zIndex: 9999 }) }}
                                             />
                                             <label className='fom-label pt-3 fw-bold' htmlFor='dist-input'>District</label>
@@ -615,6 +613,7 @@ class GraphModal extends React.Component{
                                                 isSearchable={true}
                                                 onChange={this.tab1distSelectHandler}
                                                 isClearable={true}
+                                                placeholder = 'Select district...'
                                                 menuPortalTarget={document.body} 
                                                 styles={{ menuPortal: base => ({ ...base, zIndex: 9999 }) }}
                                             />
@@ -628,28 +627,29 @@ class GraphModal extends React.Component{
                                         isSearchable={true}
                                         isClearable={true}
                                         onChange={this.onStateChangeInCenter}
+                                        placeholder='Select a state...'
                                         menuPortalTarget={document.body} 
                                         styles={{ menuPortal: base => ({ ...base, zIndex: 9999 }) }}
                                     />
-                                    <label className='fom-label fw-bold' htmlFor='center-input'>Centers</label>
+                                    <label className='fom-label fw-bold pt-3' htmlFor='center-input'>Centers</label>
                                     <AsyncSelect
                                             isClearable
                                             value={this.state.selectedCenter}
-                                            placeholder='Type a center name here.'
+                                            placeholder='Type a center name here...'
                                             // onInputChange={this.onChange}
                                             onChange={this.onChange}
                                             loadOptions = {this.loadOptions}
                                             menuPortalTarget={document.body} 
                                             styles={{ menuPortal: base => ({ ...base, zIndex: 9999 }) }}
                                     />
-                                    <small class="form-text text-muted">Type atleast first <strong>3 characters</strong> of the center name to get the most <strong>relevant</strong> data.</small>
+                                    <small class="form-text text-muted">Type atleast <strong>3 characters</strong> to search for centers.</small>
                                 </div>
                                 }
                                 {this.state.searchMode === 'pincode' && 
                                     <div>
                                     <div className='pt-3'>
                                         <label htmlFor="pincode-input" className='fw-bold'>Pincode</label>
-                                        <input type="string" class="form-control" id="pincode-input" onChange={this.pincodeInputHandler} placeholder='Enter a valid pincode'/>
+                                        <input type="string" class="form-control" id="pincode-input" onChange={this.pincodeInputHandler} placeholder='Enter a valid pincode...'/>
                                     </div>
                                     {this.state.isPincodeFilterError?
                                         <div value={this.state.isPincodeFilterError}>
@@ -697,8 +697,9 @@ class GraphModal extends React.Component{
 
                         </div>
                         <div className='row pb-5'>
-                            <div className='col-lg-12 col-sm-12 col-md-12 justify-content-between mt-5'>
+                            <div className='col-lg-12 col-sm-12 col-md-12 justify-content-start mt-5'>
                                 <hr/>
+                                <h3 className='mb-3'>Slot availability events chart</h3>
                                 {this.state.error ? 
                                 <>
                                     <div class="alert alert-warning" role="alert">{this.state.error}</div>

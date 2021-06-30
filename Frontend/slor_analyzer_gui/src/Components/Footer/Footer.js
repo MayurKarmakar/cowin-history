@@ -30,16 +30,16 @@ export default function Footer(){
                         </div>
                     </div> */}
                     <div className='row text-white pt-4 px-auto ml-lg-4'>
-                        <div className='col-lg-4 col-md-3 col-4 d-flex justify-content-end flex-column align-self-start'>
+                        <div className='col-lg-4 col-md-3  d-flex justify-content-end flex-column align-self-start'>
                             <h4 className='font-weight-bold'>COVID Helpline</h4>
                             <p>Number: +91-11-23978046</p>
                             <p>Toll Free: 1075</p>
                         </div>
-                        <div className='col-lg-4 col-md-3 col-4 d-flex justify-content-end flex-column align-self-start'>
+                        <div className='col-lg-4 col-md-3  d-flex justify-content-end flex-column align-self-start'>
                             <h4 className='font-weight-bold'>Useful Links</h4>
                             <p><NavLink to={{ pathname: "https://www.cowin.gov.in/home" }} target="_blank" className='text-white'>Book a slot</NavLink></p>
                         </div>
-                        <div className='col-lg-4 col-md-3 col-4 d-flex justify-content-end flex-column align-self-start'>
+                        <div className='col-lg-4 col-md-3  d-flex justify-content-end flex-column align-self-start'>
                             <h4 className='font-weight-bold'>Contact us</h4>
                             <p><i className='fa fa-envelope mr-2'></i>Mail at:  support@cowinhistory.com</p>
                             <p><i className='fa fa-phone mr-2'></i>Call on:  + 91 7250622143</p>
