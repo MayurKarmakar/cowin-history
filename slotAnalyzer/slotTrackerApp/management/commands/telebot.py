@@ -204,7 +204,7 @@ def parse_message_for_bbmp_format1(message):
             
         if re.search('dose', item):
             vaccine_name = item.split(' ')[0].strip().upper()
-            parsed_data['vaccine'] = vaccine_name
+            session['vaccine'] = vaccine_name
 
             if item.find('1st') != -1:
                 dose = 1
@@ -463,6 +463,19 @@ def get_state_id_for_district_id(district_id):
     channel_id = [channel_id for channel_id in entity_object if entity_object[channel_id]['district_id'] == district_id ][0]
     return entity_object[channel_id]['state_id']
 
+def insert_raw_message_to_slot_availability_event(raw_message, district_id):
+    message_string = raw_message.event_message
+    parsed_data_list = parse_message(message_string, district_id)
+
+
+    for parsed_data in parsed_data_list:
+        # print('insert_slot_availability_events_for_district', parsed_data)
+
+        state_id = get_state_id_for_district_id(district_id)
+
+        insert_slot_availability_event_from_parsed_data(parsed_data, state_id, district_id, raw_message.timestamp)
+
+
 
 def insert_slot_availability_events_for_district(district_id):
     print("insert_slot_availability_events_for_district", district_id)
@@ -480,10 +493,11 @@ def insert_slot_availability_events_for_district(district_id):
 
         try:
             insert_raw_message_to_slot_availability_event(raw_message, district_id)
-        except:
+        except Exception as e:
             failed += 1
             print('insert_slot_availability_events_for_district failed for message string')
             print(message_string)
+            raise e
 
         total += 1
 
@@ -512,7 +526,7 @@ def insert_slot_availability_events_for_all_districts():
 
 # get_messages_of_one_district('1458101449')
 # insert_data_for_district_id(294)
-# insert_slot_availability_events_for_district(446)
+insert_slot_availability_events_for_district(294)
 # insert_slot_availability_events_for_all_districts()
 
 
@@ -553,19 +567,9 @@ def test_bbmp_parsing():
 
     print('format1', format1, 'format2', format2)
 
-test_bbmp_parsing()
-
-def insert_raw_message_to_slot_availability_event(raw_message, district_id):
-    message_string = raw_message.event_message
-    parsed_data_list = parse_message(message_string, district_id)
+# test_bbmp_parsing()
 
 
-    for parsed_data in parsed_data_list:
-        # print('insert_slot_availability_events_for_district', parsed_data)
-
-        state_id = get_state_id_for_district_id(district_id)
-
-        insert_slot_availability_event_from_parsed_data(parsed_data, state_id, district_id, raw_message.timestamp)
 
 def process_message_of_live_event_and_insert_into_raw_messages_table(message):
     peer_id = message.peer_id
