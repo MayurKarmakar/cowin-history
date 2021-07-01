@@ -204,7 +204,7 @@ class GraphModal extends React.Component{
         }
     }
     // autoSuggestionMaker = () => {
-    baseApiUrl = 'http://localhost:8000/slots/'
+    baseApiUrl = 'http://api.cowinhistory.com/slots/'
     updateChart = () => {
         let {searchMode, selectedDistrictId, inputPincode, selectedCenterName, startDateString, endDateString} = this.state
 

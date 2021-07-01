@@ -9,3 +9,6 @@ mysqldump -t -u mayur7  -p  slotAvailabiltyRecords slotTrackerApp_rawmessages > 
 
 For taking mysql database backup command(witho date creation info):
 mysqldump -u mayur7  -p  slotAvailabiltyRecords slotTrackerApp_rawmessages > Backup/raw_messages_01_07_2021.sql
+
+For data from database backup file to mysql db command:
+mysql -u mayur7 -p slotAvailabiltyRecords < raw_messages_without_date_creation_01_07_2021.sql
