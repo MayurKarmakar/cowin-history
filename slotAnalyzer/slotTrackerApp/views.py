@@ -45,7 +45,7 @@ class DistrictWiseFilteredDataView(viewsets.ModelViewSet):
             if district_id is not None:
                 # print(queryset.filter(district_id=int(district_id_value)))
                 # return queryset.filter(district_id=int(district_id_value))
-                queryset = models.SlotAvailabilityEvent.objects.all().raw("SELECT * FROM slotTrackerApp_slotavailabilityevent WHERE district_id=%s AND DATE(timestamp)>=%s AND DATE(timestamp)<=%s", [district_id, start_date_string, end_date_string])
+                queryset = models.SlotAvailabilityEvent.objects.all().raw("SELECT * FROM slotTrackerApp_slotavailabilityevent WHERE district_id=%s AND DATE(timestamp)>=%s AND DATE(timestamp)<=%s limit 1000", [district_id, start_date_string, end_date_string])
 
 
         return self.none() if queryset is None else queryset
