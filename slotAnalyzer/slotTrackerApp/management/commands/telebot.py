@@ -150,7 +150,99 @@ client.get_dialogs()
 total = 0
 failed_count = 0
 
-def parse_message(message):
+def parse_message_for_bbmp_format1(message):
+    parsed_data_list = []
+
+    parsed_data = {
+        'event_details_json': {
+            'sessions': []
+        }
+    }
+
+    session = {}
+
+    # parsed_data['state_id'] = entity_object[channel_id]['state_id']
+    # parsed_data['district_id'] = entity_object[channel_id]['district_id']
+
+    splited_message_list = message.split('\n')
+    # print("splited_message_list: ", splited_message_list)
+    
+    # if not re.search('^Vaccination centers', splited_message_list[0]):
+    #     return
+ 
+    vaccine_name = None
+    
+    # parsed_data['state_id'] = entity_object[str(channel_id)]['state_id']
+    # parsed_data['district_id'] = entity_object[str(channel_id)]['district_id']
+
+    # parsed_data['timestamp'] = datetime.fromtimestamp(message.timestamp.timestamp())
+
+
+    dose = None
+
+    center_candidates = set()
+    for item in splited_message_list:
+        center_candidates.add(item.strip())
+
+    for item in splited_message_list:
+        item = item.strip()
+        if item == '':
+            center_candidates.discard(item)
+            continue
+
+        if item == 'BBMP':
+            center_candidates.discard(item)
+            continue
+
+        if item.find('CoWIN') != -1 or item.find('Twitter') != -1:
+            center_candidates.discard(item)
+            continue
+
+        if re.match(r'^\d{6}$', item):
+            parsed_data['pincode'] = item
+            center_candidates.discard(item)
+            
+        if re.search('dose', item):
+            vaccine_name = item.split(' ')[0].strip().upper()
+            parsed_data['vaccine'] = vaccine_name
+
+            if item.find('1st') != -1:
+                dose = 1
+            else:
+                dose = 2
+
+            center_candidates.discard(item)
+            
+
+        if re.search('^\d{2}-\d{2}-\d{4}$', item):
+            day = int(item[0: 2])
+            month = int(item[3: 5])
+            year = int(item[6: 10])
+
+            event_timestamp = int(datetime(year, month, day, 00, 00, 00).timestamp()*1000)
+            session['timestamp'] = event_timestamp
+
+            center_candidates.discard(item)
+
+        if re.search(r'slots', item):
+            slots = int(item.split(' ')[0].strip())
+
+            session['available_capacity_dose1'] = 0
+            session['available_capacity_dose2'] = 0
+
+            if dose == 1:
+                session['available_capacity_dose1'] = slots
+            elif dose == 2:
+                session['available_capacity_dose2'] = slots
+            center_candidates.discard(item)
+
+    parsed_data['center_name'] = list(center_candidates)[0]
+    parsed_data['event_details_json']['sessions'].append(session)
+
+    return [parsed_data]
+
+
+def parse_message_general_logic(message):
 
     parsed_data_list = []
 
@@ -283,7 +375,18 @@ def parse_message(message):
     return parsed_data_list
 
 
-        
+
+def parse_message_for_bbmp(message):
+    if (message.find('1st dose') != -1) or (message.find('2nd dose') != -1):
+        return parse_message_for_bbmp_format1(message)
+    return []
+
+def parse_message(message, district_id):
+    if district_id == 294: # bbmp district id
+        return parse_message_for_bbmp(message)
+    else:
+        return parse_message_general_logic(message)
+
 
 # parse_message_from_db_records()
 # total = 0
@@ -294,11 +397,7 @@ def insert_into_raw_messages_table(message, district_id):
                                     district_id=district_id)
         raw_message.id = str(datetime.fromtimestamp(message.date.timestamp()))+'_'+str(district_id)
         raw_message.save()
-        print("Message of district id {} inserted into raw_messages_table".format(district_id))
-        if district_id != 294:
-            print("Inserting into slotAvailabilityEvent table:")
-            insert_slot_availability_events_for_district(district_id)
-
+        return raw_message
 
 def get_messages_for_district_id(district_id):
     print("get_messages_for_district_id", district_id)
@@ -380,15 +479,7 @@ def insert_slot_availability_events_for_district(district_id):
         # message_string = 'Vaccination centers for 18-44 group:\n'+ '1. AIIMS BHUBANESWAR (Age 18-44) (AIIMS Urban) - Pin: 751019. Vaccine: COVAXIN.\n' + '217 slots are available on May 10\n' +'357 slots are available on May 11\n' +'\n' +'2. dummy center - Pin: 751019. Vaccine: COVAXIN.\n' + '23123 slots are available on May 10\n' +'34564364 slots are available on May 11\n';
 
         try:
-            parsed_data_list = parse_message(message_string)
-
-
-            for parsed_data in parsed_data_list:
-                # print('insert_slot_availability_events_for_district', parsed_data)
-
-                state_id = get_state_id_for_district_id(district_id)
-
-                insert_slot_availability_event_from_parsed_data(parsed_data, state_id, district_id, raw_message.timestamp)
+            insert_raw_message_to_slot_availability_event(raw_message, district_id)
         except:
             failed += 1
             print('insert_slot_availability_events_for_district failed for message string')
@@ -420,44 +511,79 @@ def insert_slot_availability_events_for_all_districts():
         insert_slot_availability_events_for_district(district_id)
 
 # get_messages_of_one_district('1458101449')
-insert_data_for_district_id(294)
+# insert_data_for_district_id(294)
 # insert_slot_availability_events_for_district(446)
 # insert_slot_availability_events_for_all_districts()
 
 
-# def insert_live_message_into_raw_message_table(message):
-#     date = message.date
-#     peer_id = message.peer_id
-#     channel_id = peer_id.channel_id
-#     district_id = entity_object[channel_id]['district_id']
+            
+            
+
+def test_bbmp_parsing():
+    raw_messages = RawMessages.objects.filter(district_id=294)
+
+    format1 = 0
+    format2 = 0
+    for raw_message in raw_messages:
+        message_string = raw_message.event_message
+        # print('message string')
+        # print(message_string)
+
+        if (message_string.find('All slots booked in') != -1):
+            continue
+
+        if (message_string.find('1st dose') != -1) or (message_string.find('2nd dose') != -1):
+            format1 += 1
+            # print('message string')
+            # print(message_string)
+            # try:
+            parsed_data_list = parse_message_for_bbmp(message_string)
+            # except:
+            #     print('message string')
+            #     print(message_string)
+            #     break
+
+
+            # print('parsed data list', parsed_data_list)
+        else:
+            # print(message_string)
+            format2 += 1
+
+
+
+    print('format1', format1, 'format2', format2)
+
+test_bbmp_parsing()
+
+def insert_raw_message_to_slot_availability_event(raw_message, district_id):
+    message_string = raw_message.event_message
+    parsed_data_list = parse_message(message_string, district_id)
+
+
+    for parsed_data in parsed_data_list:
+        # print('insert_slot_availability_events_for_district', parsed_data)
+
+        state_id = get_state_id_for_district_id(district_id)
+
+        insert_slot_availability_event_from_parsed_data(parsed_data, state_id, district_id, raw_message.timestamp)
 
 def process_message_of_live_event_and_insert_into_raw_messages_table(message):
-    date = message.date
     peer_id = message.peer_id
     channel_id = peer_id.channel_id
     district_id = entity_object[str(channel_id)]['district_id']
-    insert_into_raw_messages_table(message, district_id)
+    raw_message = insert_into_raw_messages_table(message, district_id)
 
+    if raw_message is not None:
+        insert_raw_message_to_slot_availability_event(raw_message, district_id)
 
 
 @client.on(events.NewMessage())
 async def handler(event):
     event_str = str(event)
     peer_id = event.message.peer_id
+    print("Event message: ", event.message)
+    # process_message_of_live_event_and_insert_into_raw_messages_table(event.message)
 
-    # print(event)
-    # if peer_id.channel_id != 1243933312:
-    #     process_message_of_live_event_and_insert_into_raw_messages_table(event.message)
-    # print("event_str: ",event_str)
-    # print("event: ",event)
-    # peer_id = event.peer_id
-    # try:
-    #     print("Event Message: ", event.message)
-    #     if (peer_id.channel_id != 1243933312) or (peer_id.user_id != 1243933312):
-    #         print("Channel Id validated: ", peer_id)
-    #         identify_data_from_message(event.message)
-    # except:
-    #     print("Peer ID from except: ",peer_id)
 
 client.run_until_disconnected()
 
