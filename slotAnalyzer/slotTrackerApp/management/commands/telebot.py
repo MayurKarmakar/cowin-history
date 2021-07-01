@@ -193,9 +193,9 @@ def parse_message(message):
             }
 
             item.strip()
-            centre_name_start_idx = re.match(r'[1-9]+\.',item).start()
+            centre_name_start_idx = re.match(r'[1-9]+\.',item).end()
             centre_name_end_idx = re.search(r'Pin',item).start()
-            centre_name = item[centre_name_start_idx + 2: centre_name_end_idx - 3].strip()
+            centre_name = item[centre_name_start_idx + 1: centre_name_end_idx - 3].strip()
             # print("CEnte Name: ",centre_name)
             # print("CEnte Name length: ",len(centre_name))
             # print("CEnte Name type: ",type(centre_name))
@@ -425,11 +425,11 @@ insert_data_for_district_id(294)
 # insert_slot_availability_events_for_all_districts()
 
 
-def insert_live_message_into_raw_message_table(message):
-    date = message.date
-    peer_id = message.peer_id
-    channel_id = peer_id.channel_id
-    district_id = entity_object[channel_id]['district_id']
+# def insert_live_message_into_raw_message_table(message):
+#     date = message.date
+#     peer_id = message.peer_id
+#     channel_id = peer_id.channel_id
+#     district_id = entity_object[channel_id]['district_id']
 
 def process_message_of_live_event_and_insert_into_raw_messages_table(message):
     date = message.date
