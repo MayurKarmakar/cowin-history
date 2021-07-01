@@ -8,7 +8,7 @@ from telethon.tl.types import PeerUser
 from slotTrackerApp.models import RawMessages, SlotAvailabilityEvent
 import re
 from telethon import TelegramClient, events, sync
-from datetime import  datetime
+from datetime import  datetime, timedelta
 import pytz
 import json
 import sys
@@ -399,16 +399,16 @@ def insert_into_raw_messages_table(message, district_id):
         raw_message.save()
         return raw_message
 
-def get_messages_for_district_id(district_id):
+def get_messages_for_district_id(district_id, limit=None):
     print("get_messages_for_district_id", district_id)
     channel_id   = [item for item in entity_object if entity_object[item]['district_id'] == district_id ][0]
     entity = client.get_entity(int(channel_id))
-    messages = client.get_messages(entity, limit=None)
+    messages = client.get_messages(entity, limit=limit)
     return messages
 
-def insert_data_for_district_id(district_id):
+def insert_data_for_district_id(district_id, limit=None):
     print("insert_data_for_district_id", district_id)
-    messages = get_messages_for_district_id(district_id)
+    messages = get_messages_for_district_id(district_id, limit)
 
     total_messages = len(messages)
     print("insert_data_for_district_id message count = ", total_messages)
@@ -432,13 +432,13 @@ def insert_data_for_district_id(district_id):
     
     print("insert_data_for_district_id", district_id, "messages processed", total, " / ", total_messages)
     
-def insert_data_for_all_districts():
+def insert_data_for_all_districts(limit=None):
     print("insert_data_for_all_districts")
     total = 0
     for channel_id in entity_object:
         entity = entity_object[channel_id]
         district_id = entity['district_id']
-        insert_data_for_district_id(district_id)
+        insert_data_for_district_id(district_id, limit)
 
         total += 1
         print("insert_data_for_all_districts", "districts processed", total)
@@ -477,10 +477,10 @@ def insert_raw_message_to_slot_availability_event(raw_message, district_id):
 
 
 
-def insert_slot_availability_events_for_district(district_id):
+def insert_slot_availability_events_for_district(district_id, minimum_timestamp):
     print("insert_slot_availability_events_for_district", district_id)
 
-    raw_messages = RawMessages.objects.filter(district_id=district_id)
+    raw_messages = RawMessages.objects.filter(district_id=district_id, timestamp__gte=minimum_timestamp)
 
     total = 0
     failed = 0
@@ -516,18 +516,28 @@ def get_all_channel_ids():
     channel_id_list = [channel_id for channel_id in entity_object]
     return channel_id_list
 
-def insert_slot_availability_events_for_all_districts():
+def insert_slot_availability_events_for_all_districts(minimum_timestamp):
     channel_id_list = get_all_channel_ids()
 
     district_id_list = get_district_id_list_from_channel_id_list(channel_id_list)
 
     for district_id in district_id_list:
-        insert_slot_availability_events_for_district(district_id)
+        insert_slot_availability_events_for_district(district_id, minimum_timestamp)
 
 # get_messages_of_one_district('1458101449')
 # insert_data_for_district_id(294)
-insert_slot_availability_events_for_district(294)
+# insert_slot_availability_events_for_district(294)
+
 # insert_slot_availability_events_for_all_districts()
+
+def update_for_last_n_days(days):
+    tod = datetime.now()
+    d = timedelta(days = days)
+    a = tod - d
+
+    insert_data_for_all_districts(500*days)
+    insert_slot_availability_events_for_all_districts(a)
+
 
 
             
@@ -568,7 +578,7 @@ def test_bbmp_parsing():
     print('format1', format1, 'format2', format2)
 
 # test_bbmp_parsing()
-
+update_for_last_n_days(2)
 
 
 def process_message_of_live_event_and_insert_into_raw_messages_table(message):
