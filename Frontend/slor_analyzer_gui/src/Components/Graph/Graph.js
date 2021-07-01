@@ -16,6 +16,20 @@ function formatAMPM(date) {
     return strTime;
 }
 
+function getStartOfDay(timestamp){
+    let day = new Date(timestamp)
+    day.setHours(5, 30, 0, 0)
+    return day.getTime()
+}
+
+const timezone = new Date().getTimezoneOffset()
+
+Highcharts.setOptions({
+    time: {
+        // timezoneOffset: timezone,
+        // useUTC: false
+    }
+});
 
 class Graph extends React.Component{
     state = {
@@ -24,9 +38,9 @@ class Graph extends React.Component{
         centersInSelectedDisctrict: null,
         isLoading: '',
         myChart: {
-            time: {
-                timezone: 'Asia/Kolkata'
-            },
+            // time: {
+            //     timezone: 'Asia/Kolkata'
+            // },
             chart: {
                 type: 'scatter',
                 zoomType: 'xy'
@@ -87,11 +101,12 @@ class Graph extends React.Component{
             tooltip: {
                 formatter: function () {
                     let cost = null
+                    let time = formatAMPM(new Date(this.point.timestamp))
                     this.point.cost == null? cost='No information': cost=this.point.cost
-                    let s = `Centre Name: ${this.point.centerName}<br/>Cost: ${cost}<br/>`
+                    let s = `Time: ${time}<br/>Centre Name: ${this.point.centerName}<br/>Cost: ${cost}<br/>`
                     let eventDetails = this.point.eventDetails;
                     this.point.eventDetailsJson.sessions.map((eventDetails) => {
-                        s += `<b>${eventDetails.vaccine}</b><br/>**Doses available on ${new Date(eventDetails.timestamp).toISOString().slice(0, 10)}<br/>`
+                        s += `<b>${eventDetails.vaccine}</b><br/>**Doses available on ${new Date(getStartOfDay(eventDetails.timestamp)).toISOString().slice(0, 10)}<br/>`
                         s += `Dose1 = ${eventDetails.available_capacity_dose1} Dose2 = ${eventDetails.available_capacity_dose2}<br/>`
                     })
 
@@ -197,11 +212,7 @@ class Graph extends React.Component{
         // })
     }
 
-    getStartOfDay = (timestamp) => {
-        let day = new Date(timestamp)
-        day.setHours(5, 30, 0, 0)
-        return day.getTime()
-    }
+
     prepareDataforVisuals = (data) => {
         console.log("prepareDataforVisuals: ", data)
         let seriesData = {'Events': []}
@@ -219,10 +230,12 @@ class Graph extends React.Component{
 
             let {timestamp, day, time, day_timestamp, time_timestamp, center_name} = item
 
-            let startOfDay = this.getStartOfDay(timestamp)
+            let startOfDay = getStartOfDay(timestamp)
             // console.log("startOfDay", startOfDay, day_timestamp)
             
-            seriesData['Events'].push({x: startOfDay, day: day, y: time_timestamp, time: time, centerName: center_name, eventDetailsJson: event_details_json})
+            let localDate = new Date(timestamp);
+            let timeTimestamp = localDate.getHours()*60 + localDate.getMinutes()
+            seriesData['Events'].push({x: startOfDay, day: day, y: timeTimestamp, time: time, centerName: center_name, eventDetailsJson: event_details_json, timestamp: timestamp})
             // console.log("Series Data: ",seriesData)
         })
 

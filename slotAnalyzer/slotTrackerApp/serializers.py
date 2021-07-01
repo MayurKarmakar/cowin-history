@@ -187,7 +187,7 @@ class SlotAvailabilityEventSerializer(serializers.ModelSerializer):
         return self.get_start_of_day(obj.timestamp)
     
     def get_time_timestamp(self, obj):
-        return (obj.timestamp.hour * 60 + obj.timestamp.minute + 330)
+        return (obj.timestamp.hour * 60 + obj.timestamp.minute +330)
 
     def get_event_details_json(self, obj):
         return json.loads(obj.event_details_json)
