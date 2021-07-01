@@ -86,10 +86,12 @@ class Graph extends React.Component{
             },
             tooltip: {
                 formatter: function () {
-                    let s = `<strong>${this.point.vaccine}</strong><br/>Centre Name: ${this.point.centerName}<br/>Cost: ${this.point.cost}<br/>`
+                    let cost = null
+                    this.point.cost == null? cost='No information': cost=this.point.cost
+                    let s = `Centre Name: ${this.point.centerName}<br/>Cost: ${cost}<br/>`
                     let eventDetails = this.point.eventDetails;
                     this.point.eventDetailsJson.sessions.map((eventDetails) => {
-                        s += `*Doses available on ${new Date(eventDetails.timestamp).toISOString().slice(0, 10)}<br/>`
+                        s += `<b>${eventDetails.vaccine}</b><br/>**Doses available on ${new Date(eventDetails.timestamp).toISOString().slice(0, 10)}<br/>`
                         s += `Dose1 = ${eventDetails.available_capacity_dose1} Dose2 = ${eventDetails.available_capacity_dose2}<br/>`
                     })
 
@@ -120,6 +122,7 @@ class Graph extends React.Component{
     }
 
     componentDidUpdate = (prevProps, prevState, Snapshot) => {
+        console.log("Props received: [COmponent Did UPdate]", this.props.dataObject)
         if(prevProps.dataObject !== this.props.dataObject){
             this.setState({
                 apiData: this.props.dataObject,
@@ -130,7 +133,7 @@ class Graph extends React.Component{
             })
         }
 
-        if (prevProps != this.props){
+        if (prevProps !== this.props){
             this.setState({
                 myChart: {
                     title: {
@@ -157,7 +160,8 @@ class Graph extends React.Component{
     }
 
     componentDidMount = () => {
-        if(this.props.dataObject.length!==0){
+        console.log("Props received: [COmponent Did Mount]", this.props.dataObject)
+        if(this.props.dataObject.length !== 0){
             this.setState({
                 apiData: this.props.dataObject,
                 isLoading: true,
@@ -200,34 +204,25 @@ class Graph extends React.Component{
     }
     prepareDataforVisuals = (data) => {
         console.log("prepareDataforVisuals: ", data)
-        let seriesData = {}
-        let vaccine = null
-        let availableCapacityDose1 = null
-        let availableCapacityDose2 = null
-        let vaccineCost = null
-        let eventTimestamp = null
+        let seriesData = {'Events': []}
+
         data.forEach(item  => {
             let event_details_json = item['event_details_json']
             // console.log("event_details_json VACCINE NAME: ", event_details_json['sessions'][0]['vaccine'])
-            vaccine = event_details_json['sessions'][0]['vaccine']
-            vaccine = event_details_json['sessions'][0]['vaccine']
+            // vaccine = event_details_json['sessions'][0]['vaccine']
+            // vaccine = event_details_json['sessions'][0]['vaccine']
             // console.log("VACCINE NAME: ",vaccine)
-            availableCapacityDose1 = event_details_json['sessions'][0]['available_capacity_dose1']
-            availableCapacityDose2 = event_details_json['sessions'][0]['available_capacity_dose2']
-            vaccineCost = event_details_json['sessions'][0]['cost']
-            eventTimestamp = event_details_json['sessions'][0]['timestamp'] * 1000
+            // availableCapacityDose1 = event_details_json['sessions'][0]['available_capacity_dose1']
+            // availableCapacityDose2 = event_details_json['sessions'][0]['available_capacity_dose2']
+            // vaccineCost = event_details_json['sessions'][0]['cost']
+            // eventTimestamp = event_details_json['sessions'][0]['timestamp'] * 1000
 
             let {timestamp, day, time, day_timestamp, time_timestamp, center_name} = item
-            if (seriesData[vaccine] === undefined) {
-                seriesData[vaccine] = []
-            }                    
-
 
             let startOfDay = this.getStartOfDay(timestamp)
             // console.log("startOfDay", startOfDay, day_timestamp)
             
-            seriesData[vaccine].push({x: startOfDay, day: day, y: time_timestamp, time: time, centerName: center_name, dose1Quantity: availableCapacityDose1, dose2Quantitiy: availableCapacityDose2, vaccine: vaccine,
-                                    eventTimestampValue: eventTimestamp, cost: vaccineCost, eventDetailsJson: event_details_json})
+            seriesData['Events'].push({x: startOfDay, day: day, y: time_timestamp, time: time, centerName: center_name, eventDetailsJson: event_details_json})
             // console.log("Series Data: ",seriesData)
         })
 
