@@ -544,7 +544,7 @@ class GraphModal extends React.Component{
 
     componentDidMount = () => {
         window.scrollTo(0, 0)
-        document.title = 'Cowinhistory'
+        // document.title = 'Cowinhistory'
         this.updateChart()
         this.setState({
             stateDistTabClass: "nav-link active",
