@@ -26,7 +26,7 @@ class SlotAvailabilityEventView(viewsets.ModelViewSet):
     
 class DistrictWiseFilteredDataView(viewsets.ModelViewSet):
     # queryset = models.SlotAvailabilityEvent.objects.all()
-    serializer_class = serializers.DistrictWiseFilteredDataSerializer
+    serializer_class = serializers.SlotAvailabilityEventSerializer
     parser_classes = [
         permissions.AllowAny
     ]
@@ -51,7 +51,7 @@ class DistrictWiseFilteredDataView(viewsets.ModelViewSet):
         return self.none() if queryset is None else queryset
 
 class PincodeWiseFilteredDataView(viewsets.ModelViewSet):
-    serializer_class = serializers.PincodeWiseFilteredDataSerializer
+    serializer_class = serializers.SlotAvailabilityEventSerializer
     parser_classes = [
         permissions.AllowAny
     ]
@@ -111,7 +111,7 @@ class CenterNameWiseFilteredDataView(viewsets.ModelViewSet):
             return queryset
 
 class DateRangeWiseFilteredDataView(viewsets.ModelViewSet):
-    serializer_class = serializers.PincodeWiseFilteredDataSerializer
+    serializer_class = serializers.SlotAvailabilityEventSerializer
     parser_classes = [
         permissions.AllowAny
     ]
@@ -133,7 +133,7 @@ class DateRangeWiseFilteredDataView(viewsets.ModelViewSet):
             return queryset
 
 class VaccinationCenterDataView(viewsets.ModelViewSet):
-    serializer_class = serializers.VaccinationCenterDataSerializer
+    serializer_class = serializers.SlotAvailabilityEventSerializer
     parser_classes = [
         permissions.AllowAny
     ]

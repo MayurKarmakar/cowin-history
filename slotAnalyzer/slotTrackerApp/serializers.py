@@ -3,6 +3,7 @@ from rest_framework import serializers
 from . import models
 import datetime
 import os, time
+import json
 
 os.environ['TZ'] = 'Asia/Kolkata'
 time.tzset()
@@ -151,7 +152,7 @@ class CenterNameWiseFilteredDataSerializer(serializers.ModelSerializer):
     def get_time_timestamp(self, obj):
         return (obj.timestamp.hour * 60 + obj.timestamp.minute + 330)
 
-class VaccinationCenterDataSerializer(serializers.ModelSerializer):
+class SlotAvailabilityEventSerializer(serializers.ModelSerializer):
     timestamp = serializers.SerializerMethodField() 
 
     day = serializers.SerializerMethodField() 
@@ -161,6 +162,8 @@ class VaccinationCenterDataSerializer(serializers.ModelSerializer):
     day_timestamp = serializers.SerializerMethodField() 
 
     time_timestamp = serializers.SerializerMethodField() 
+
+    event_details_json = serializers.SerializerMethodField()
     
     class Meta:
         model = models.SlotAvailabilityEvent
@@ -185,6 +188,11 @@ class VaccinationCenterDataSerializer(serializers.ModelSerializer):
     
     def get_time_timestamp(self, obj):
         return (obj.timestamp.hour * 60 + obj.timestamp.minute + 330)
+
+    def get_event_details_json(self, obj):
+        return json.loads(obj.event_details_json)
+
+    
 
 
 

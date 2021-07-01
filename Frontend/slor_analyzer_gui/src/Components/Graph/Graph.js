@@ -86,10 +86,14 @@ class Graph extends React.Component{
             },
             tooltip: {
                 formatter: function () {
+                    let s = `<strong>${this.point.vaccine}</strong><br/>Centre Name: ${this.point.centerName}<br/>Cost: ${this.point.cost}<br/>`
+                    let eventDetails = this.point.eventDetails;
+                    this.point.eventDetailsJson.sessions.map((eventDetails) => {
+                        s += `*Doses available on ${new Date(eventDetails.timestamp).toISOString().slice(0, 10)}<br/>`
+                        s += `Dose1 = ${eventDetails.available_capacity_dose1} Dose2 = ${eventDetails.available_capacity_dose2}<br/>`
+                    })
 
-                    return `<strong>${this.point.vaccine}</strong><br/>Centre Name: ${this.point.centerName}<br/>Cost: ${this.point.cost} Dose 1: ${this.point.dose1Quantity} Dose 2: ${this.point.dose2Quantitiy}<br/>**Doses available on ${new Date(this.point.eventTimestampValue).getDate()}/
-                                        ${new Date(this.point.eventTimestampValue).getMonth() + 1}/${new Date(this.point.eventTimestampValue).getFullYear()}`
-                    
+                    return s                    
                 }
             },
             series: []
@@ -203,15 +207,15 @@ class Graph extends React.Component{
         let vaccineCost = null
         let eventTimestamp = null
         data.forEach(item  => {
-            let event_details_json = JSON.parse(item['event_details_json'])
-            // console.log("event_details_json VACCINE NAME: ", event_details_json['session'][0]['vaccine'])
-            vaccine = event_details_json['session'][0]['vaccine']
-            vaccine = event_details_json['session'][0]['vaccine']
+            let event_details_json = item['event_details_json']
+            // console.log("event_details_json VACCINE NAME: ", event_details_json['sessions'][0]['vaccine'])
+            vaccine = event_details_json['sessions'][0]['vaccine']
+            vaccine = event_details_json['sessions'][0]['vaccine']
             // console.log("VACCINE NAME: ",vaccine)
-            availableCapacityDose1 = event_details_json['session'][0]['available_capacity_dose1']
-            availableCapacityDose2 = event_details_json['session'][0]['available_capacity_dose2']
-            vaccineCost = event_details_json['session'][0]['cost']
-            eventTimestamp = event_details_json['session'][0]['timestamp'] * 1000
+            availableCapacityDose1 = event_details_json['sessions'][0]['available_capacity_dose1']
+            availableCapacityDose2 = event_details_json['sessions'][0]['available_capacity_dose2']
+            vaccineCost = event_details_json['sessions'][0]['cost']
+            eventTimestamp = event_details_json['sessions'][0]['timestamp'] * 1000
 
             let {timestamp, day, time, day_timestamp, time_timestamp, center_name} = item
             if (seriesData[vaccine] === undefined) {
@@ -223,7 +227,7 @@ class Graph extends React.Component{
             // console.log("startOfDay", startOfDay, day_timestamp)
             
             seriesData[vaccine].push({x: startOfDay, day: day, y: time_timestamp, time: time, centerName: center_name, dose1Quantity: availableCapacityDose1, dose2Quantitiy: availableCapacityDose2, vaccine: vaccine,
-                                    eventTimestampValue: eventTimestamp, cost: vaccineCost})
+                                    eventTimestampValue: eventTimestamp, cost: vaccineCost, eventDetailsJson: event_details_json})
             // console.log("Series Data: ",seriesData)
         })
 

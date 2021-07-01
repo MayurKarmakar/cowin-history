@@ -204,6 +204,7 @@ class GraphModal extends React.Component{
         }
     }
     // autoSuggestionMaker = () => {
+    baseApiUrl = 'http://localhost:8000/slots/'
     updateChart = () => {
         let {searchMode, selectedDistrictId, inputPincode, selectedCenterName, startDateString, endDateString} = this.state
 
@@ -216,7 +217,7 @@ class GraphModal extends React.Component{
                 return
             }
     
-            urlPath = `https://api.cowinhistory.com/slots/district_data/?district_id=${selectedDistrictId}`
+            urlPath = `${this.baseApiUrl}district_data/?district_id=${selectedDistrictId}`
         }
         if (searchMode === 'center') {
             if (!selectedCenterName) {
@@ -226,7 +227,7 @@ class GraphModal extends React.Component{
                 return
             }
 
-            urlPath = `https://api.cowinhistory.com/slots/center/data/?district_id=${selectedDistrictId}&center_name=${selectedCenterName}`
+            urlPath = `${this.baseApiUrl}center/data/?district_id=${selectedDistrictId}&center_name=${selectedCenterName}`
         }
         if (searchMode === 'pincode') {
             if (!inputPincode) {
@@ -245,7 +246,7 @@ class GraphModal extends React.Component{
                 return
             }
 
-            urlPath = `https://api.cowinhistory.com/slots/pincode/?pincode=${inputPincode}`
+            urlPath = `${this.baseApiUrl}pincode/?pincode=${inputPincode}`
         }
 
 
@@ -359,7 +360,7 @@ class GraphModal extends React.Component{
     loadOptions =async (textInput, callback) => {
         let collectedMatchedData = null
         if(textInput.length >= 3){
-            await axios.get(`https://api.cowinhistory.com/slots/center_name?state_id=${this.state.selectedStateId}&center_name_like=${textInput}`).then(res=>{
+            await axios.get(`${this.baseApiUrl}center_name?state_id=${this.state.selectedStateId}&center_name_like=${textInput}`).then(res=>{
                 collectedMatchedData = res.data
             }).catch(err=>{
                 console.log(err)

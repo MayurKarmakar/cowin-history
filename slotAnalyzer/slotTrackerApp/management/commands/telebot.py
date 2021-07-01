@@ -1,6 +1,9 @@
 from logging import error
+from time import perf_counter
 from typing import Final
 from django.core.management.base import BaseCommand, CommandError
+from django.db import reset_queries
+from telethon.tl.functions import ReqDHParamsRequest
 from telethon.tl.types import PeerUser
 from slotTrackerApp.models import RawMessages, SlotAvailabilityEvent
 import re
@@ -9,6 +12,9 @@ from datetime import  datetime
 import pytz
 import json
 import sys
+import os
+
+os.environ["DJANGO_ALLOW_ASYNC_UNSAFE"] = "true"
 
 without_timezone = datetime(2021, 6, 17, 21, 27, 00)
 indian_timezone = pytz.timezone('Asia/Kolkata')
@@ -77,7 +83,7 @@ entity_object = {
 
     #Karnataka Districts
 
-    # '1243933312': {"district_id":294,"district_name":"Bengaluru BBMP"},
+    '1243933312': {"district_id":294,"state_id":16},
     '1142602708': {"district_id":268,"state_id":16},
     '1230461833': {"district_id":289,"state_id":16},
     '1194665890': {"district_id":264,"state_id":16},
@@ -141,114 +147,69 @@ client = TelegramClient('slot_tracker', api_id, api_hash)
 
 client.start()
 client.get_dialogs()
-def parse_data_from_message_object(message_object, entity_id):
+total = 0
+failed_count = 0
+
+def parse_message(message):
+
+    parsed_data_list = []
 
     parsed_data = {
         'event_details_json': {
-            'session': []
+            'sessions': []
         }
     }
 
-    # parsed_data['state_id'] = entity_object[entity_id]['state_id']
-    # parsed_data['district_id'] = entity_object[entity_id]['district_id']
+    # parsed_data['state_id'] = entity_object[channel_id]['state_id']
+    # parsed_data['district_id'] = entity_object[channel_id]['district_id']
 
-    print('Error Message: ', message_object)
-    parsed_data['timestamp'] = datetime.fromtimestamp(message_object.date.timestamp())
-    splited_message_list = message_object.message.split('\n')
+    splited_message_list = message.split('\n')
+    print("splited_message_list: ", splited_message_list)
     
-    if not re.match('^Vaccination+\s', splited_message_list[0]):
-        return
-    print("splited_message_list: ",splited_message_list)
-
-    # if entity_id == '1243933312':
-    #     for item in splited_message_list:
-    #         print("Item: ",item)
-    #         if re.search(r'\d{6}', item):
-    #             parsed_data['pincode'] = item
-    #         if ('COVISHIELD' in item) or ('Covishield' in item) or ('covishield' in item):
-    #             parsed_data['vaccine'] = 'COVISHIELD'
-    #             splitted_item_list = item.split(' ')
-    #             if (splitted_item_list[1] == '1st') or (splitted_item_list[1] == '1ST'):
-    #                 parsed_data['available_capacity_dose1'] = 0
-    #                 parsed_data['available_capacity_dose2'] = -1
-    #             if (splitted_item_list[1] == '2nd') or (splitted_item_list[1] == '2ND'):
-    #                 parsed_data['available_capacity_dose1'] = -1
-    #                 parsed_data['available_capacity_dose2'] = 0
-    #         elif ('COVAXIN' in item) or ('Covaxin' in item) or ('covaxin' in item):
-    #             parsed_data['vaccine'] = 'COVAXIN'
-    #             splitted_item_list = item.split(' ')
-    #             if (splitted_item_list[1] == '1st') or (splitted_item_list[1] == '1ST'):
-    #                 parsed_data['available_capacity_dose1'] = 0
-    #                 parsed_data['available_capacity_dose2'] = -1
-    #             if (splitted_item_list[1] == '2nd') or (splitted_item_list[1] == '2ND'):
-    #                 parsed_data['available_capacity_dose1'] = -1
-    #                 parsed_data['available_capacity_dose2'] = 0
-            # if ('Dose' or 'dose' in item):
-            #     dose_number_start_idx = re.search(r'[1-9]+[a-zA-Z]', item).start()
-            #     parsed_data['vaccine'] = item[:dose_number_start_idx].strip()
-
-    #         if ('SLOTS' in item) or ('slots' in item) or ('Slots' in item):
-    #             itemIdx = splited_message_list.index(item)
-    #             slots_quantity_message_list = item.split(' ')
-    #             if (slots_quantity_message_list[0] != 'SLOTS') or (slots_quantity_message_list[0] != 'slots') or (slots_quantity_message_list[0] != 'Slots'):
-    #                 if parsed_data['available_capacity_dose1'] == 0:
-    #                     parsed_data['available_capacity_dose1'] = slots_quantity_message_list[0]
-    #                 if parsed_data['available_capacity_dose2'] == 0:
-    #                     parsed_data['available_capacity_dose2'] = slots_quantity_message_list[0]
-    #             elif (slots_quantity_message_list[0] == 'SLOTS') or (slots_quantity_message_list[0] == 'slots') or (slots_quantity_message_list[0] == 'Slots'):
-    #                 if parsed_data['available_capacity_dose1'] == 0:
-    #                     parsed_data['available_capacity_dose1'] = slots_quantity_message_list[1]
-    #                 if parsed_data['available_capacity_dose2'] == 0:
-    #                     parsed_data['available_capacity_dose2'] = slots_quantity_message_list[1]
-    #             parsed_data['center_name'] = splited_message_list[itemIdx+1]
-        
-                
-            
-    #         print("Printing Extracted data: ")
-        
-    # for item in parsed_data:
-    #     print('{}: {}'.format(item, parsed_data[item]))
-
-    
-    print("Message object: ",message_object)
-    message_obj_id = message_object.id
-    print("message_obj_id: ",message_obj_id)
-    print("message_obj_id type: ", type(str(message_obj_id)))
+    # if not re.search('^Vaccination centers', splited_message_list[0]):
+    #     return
+ 
     vaccine_name = None
-    isDataExtracted = False
-    parsed_data = {
-        'event_details_json': {
-            'session': []
-        }
-    }
     
-    parsed_data['state_id'] = entity_object[entity_id]['state_id']
-    parsed_data['district_id'] = entity_object[entity_id]['district_id']
+    # parsed_data['state_id'] = entity_object[str(channel_id)]['state_id']
+    # parsed_data['district_id'] = entity_object[str(channel_id)]['district_id']
 
-    parsed_data['timestamp'] = datetime.fromtimestamp(message_object.date.timestamp())
-    splited_message_list = message_object.message.split('\n')
+    # parsed_data['timestamp'] = datetime.fromtimestamp(message.timestamp.timestamp())
+
 
         
     for item in splited_message_list:
+        if item.strip() == '':
+            continue
 
         if re.match(r'[1-9]+\.', item):
+            if 'center_name' in parsed_data:
+                parsed_data_list.append(parsed_data)
+
+            parsed_data = {
+                'event_details_json': {
+                    'sessions': []
+                }
+            }
+
             item.strip()
             centre_name_start_idx = re.match(r'[1-9]+\.',item).start()
-            centre_name_end_idx = re.search(r'\(',item).end()
-            centre_name = item[centre_name_start_idx + 2: centre_name_end_idx - 1]
-            print("CEnte Name: ",centre_name)
-            print("CEnte Name length: ",len(centre_name))
-            print("CEnte Name type: ",type(centre_name))
+            centre_name_end_idx = re.search(r'Pin',item).start()
+            centre_name = item[centre_name_start_idx + 2: centre_name_end_idx - 3].strip()
+            # print("CEnte Name: ",centre_name)
+            # print("CEnte Name length: ",len(centre_name))
+            # print("CEnte Name type: ",type(centre_name))
             centre_name.strip()
-            print("After strip")
-            print("CEnte Name list: ",list(centre_name[1: -1]))
-            print("CEnte Name length: ",len(centre_name))
-            print("CEnte Name type: ",type(centre_name))
-            parsed_data['center_name'] = centre_name[1: -1]
+            # print("After strip")
+            # print("CEnte Name list: ",list(centre_name[1: -1]))
+            # print("CEnte Name length: ",len(centre_name))
+            # print("CEnte Name type: ",type(centre_name))
+            parsed_data['center_name'] = centre_name
             data_dict['centre_name'].append(centre_name)
             pincode_start_idx = re.search(r'\d{6}', item).start()
             pincode_end_idx = (re.search(r'\d{6}', item).end())
             parsed_data['pincode'] = item[pincode_start_idx: pincode_end_idx]
+            print("Extracted pincode: ", parsed_data['pincode'])
             data_dict['pincode'].append(item[pincode_start_idx: pincode_end_idx])
             if re.search('Vaccine:', item):
                 vaccine_name = item.split('Vaccine:')
@@ -270,29 +231,29 @@ def parse_data_from_message_object(message_object, entity_id):
             data_dict['vaccine'].append(vaccine_name)
 
         if re.search('Cost:', item):
-            print(item)
+            # print(item)
             parsed_data['cost'] = item.split(' ')[1]
-            print(parsed_data['cost'])
+            # print(parsed_data['cost'])
 
         if re.search(r'slots', item):
             # re.compile(" +")
             splited_slot_detail_message = item.split(' ')
             if splited_slot_detail_message[-1] == '':
                 del splited_slot_detail_message[-1]
-            print("splited_slot_detail_message: ", splited_slot_detail_message)
+            # print("splited_slot_detail_message: ", splited_slot_detail_message)
             idx_of_slots_string = splited_slot_detail_message.index('slots')
-            print("idx_of_slots_string: ",idx_of_slots_string)
+            # print("idx_of_slots_string: ",idx_of_slots_string)
             slot_availability_month = splited_slot_detail_message[-2]
             slot_availability_date = int(splited_slot_detail_message[-1])
 
-            print("Parsed Month value: ", months_integer_values_dict[slot_availability_month])
-            print("Parsed Date value: ", int(slot_availability_date))
+            # print("Parsed Month value: ", months_integer_values_dict[slot_availability_month])
+            # print("Parsed Date value: ", int(slot_availability_date))
 
-            event_timestamp = datetime(datetime.now().year, months_integer_values_dict[slot_availability_month], int(slot_availability_date), 00, 00, 00).timestamp()
+            event_timestamp = int(datetime(datetime.now().year, months_integer_values_dict[slot_availability_month], int(slot_availability_date), 00, 00, 00).timestamp()*1000)
             # timestamp = indian_timezone.localize(generate_timestamp)
-            print("Vaccine name: ",vaccine_name)
-            print("Vaccine name length: ",len(vaccine_name))
-            print("Vaccine name type: ",type(vaccine_name))
+            # print("Vaccine name: ",vaccine_name)
+            # print("Vaccine name length: ",len(vaccine_name))
+            # print("Vaccine name type: ",type(vaccine_name))
             available_capacity_dose1 = 0
             available_capacity_dose2 = 0
             vaccine_name = vaccine_name.strip()
@@ -305,103 +266,198 @@ def parse_data_from_message_object(message_object, entity_id):
             parsed_data['available_capacity_dose1'] = available_capacity_dose1
             parsed_data['available_capacity_dose2'] = available_capacity_dose2
 
-            print("Error Item: ", message_object)
+            # print("Error Item: ", message)
             
-            if "cost" in parsed_data:
-                parsed_data['event_details_json']['session'].append({'timestamp': int(event_timestamp), 'available_capacity_dose1': parsed_data['available_capacity_dose1'], 
-                                                    'available_capacity_dose2': parsed_data['available_capacity_dose2'], 'available_capacity': (parsed_data['available_capacity_dose1'] + parsed_data['available_capacity_dose2']), 'cost': parsed_data['cost'], 
-                                                    'vaccine': parsed_data['vaccine']})
-            else:
-                parsed_data['event_details_json']['session'].append({'timestamp': int(event_timestamp), 'available_capacity_dose1': parsed_data['available_capacity_dose1'], 
-                                                    'available_capacity_dose2': parsed_data['available_capacity_dose2'], 'available_capacity': (parsed_data['available_capacity_dose1'] + parsed_data['available_capacity_dose2']), 'cost': 'No information', 
-                                                    'vaccine': parsed_data['vaccine']})
-            
-    if 'pincode' in parsed_data:
-        event_details_json_data = json.dumps(parsed_data['event_details_json'])
-        print("json_string_from_dict", event_details_json_data)
-        print("json_string_from_dict type", type(event_details_json_data))
+            if "cost" not in parsed_data:
+                parsed_data['cost'] = 'No Information'
 
-        for item in parsed_data:
-            print(item + ': {}'.format(parsed_data[item]))
-            print("\n")
+            parsed_data['event_details_json']['sessions'].append({'timestamp': int(event_timestamp), 'available_capacity_dose1': parsed_data['available_capacity_dose1'], 
+                                                'available_capacity_dose2': parsed_data['available_capacity_dose2'], 'available_capacity': (parsed_data['available_capacity_dose1'] + parsed_data['available_capacity_dose2']), 'cost': parsed_data['cost'], 
+                                                'vaccine': parsed_data['vaccine']})
 
-        try:
-            # print("Error Item: ", message_object)
-            if "center_name" in parsed_data:
-                slot_event_record = SlotAvailabilityEvent(state_id = parsed_data['state_id'],
-                                                            timestamp = parsed_data['timestamp'],
-                                                            district_id = parsed_data['district_id'],
-                                                            center_name = str(parsed_data['center_name']),
-                                                            pincode = str(parsed_data['pincode']),
-                                                            event_details_json = event_details_json_data)
-            else:
-                slot_event_record = SlotAvailabilityEvent(state_id = parsed_data['state_id'],
-                                                            timestamp = parsed_data['timestamp'],
-                                                            district_id = parsed_data['district_id'],
-                                                            center_name = 'No information',
-                                                            pincode = str(parsed_data['pincode']),
-                                                            event_details_json = event_details_json_data)
+    
 
-            # slot_event_record.id = str(message_obj_id)
-            event_id = str(parsed_data['timestamp'])+ str(parsed_data['district_id'])
-            event_id.replace(' ', '_')
-            slot_event_record.id = event_id
-            slot_event_record.save()
-            print("slot_event_record id: ",slot_event_record.id)
-            print("Record Inserted")
-            del slot_event_record
-        except ValueError:
-            print("Error Item: ", item)
-            print(error)
+    parsed_data_list.append(parsed_data)
+  
+    
+    return parsed_data_list
+
+
         
 
-def identify_data_from_message_object(message_object, entity_id):
+# parse_message_from_db_records()
+# total = 0
+# failed_count = 0
+def insert_into_raw_messages_table(message, district_id):
+    if message.message is not None:
+        raw_message = RawMessages(event_message=message.message.encode().decode('unicode_escape'), timestamp=datetime.fromtimestamp(message.date.timestamp()), 
+                                    district_id=district_id)
+        raw_message.id = str(datetime.fromtimestamp(message.date.timestamp()))+'_'+str(district_id)
+        raw_message.save()
+        print("Message of district id {} inserted into raw_messages_table".format(district_id))
+        if district_id != 294:
+            print("Inserting into slotAvailabilityEvent table:")
+            insert_slot_availability_events_for_district(district_id)
+
+
+def get_messages_for_district_id(district_id):
+    print("get_messages_for_district_id", district_id)
+    channel_id   = [item for item in entity_object if entity_object[item]['district_id'] == district_id ][0]
+    entity = client.get_entity(int(channel_id))
+    messages = client.get_messages(entity, limit=None)
+    return messages
+
+def insert_data_for_district_id(district_id):
+    print("insert_data_for_district_id", district_id)
+    messages = get_messages_for_district_id(district_id)
+
+    total_messages = len(messages)
+    print("insert_data_for_district_id message count = ", total_messages)
+
     total = 0
-    failed_count = 0
+    failed = 0
+    
+    for message in messages:
+        try:
+            insert_into_raw_messages_table(message, district_id)
+        except:
+            print('insert_into_raw_messages_table failed for message', str(message))
+            failed += 1
 
-    # print("Message Object: ", message_object)
-    # for item in message_object:
-        # print("Item: ", item)
-    #     try:
-    #         event_message = RawMessages(event_message=item.message.encode().decode('unicode_escape'), timestamp = item.date, district_id='16')
-    #         event_message.id = str(item.date)+'_'+'16'
-    #         event_message.save()
-    #     except:
-    #         failed_count += 1
+        total += 1
 
-    #     total += 1
+        if total % 1000 == 0:
+            print("insert_data_for_district_id", district_id, "messages processed", total, " / ", total_messages, "failed ", failed)
 
-    #     if total % 1000 == 0:
-    #         print(total, " messages processed", "failed", failed_count)
+        
+    
+    print("insert_data_for_district_id", district_id, "messages processed", total, " / ", total_messages)
+    
+def insert_data_for_all_districts():
+    print("insert_data_for_all_districts")
+    total = 0
+    for channel_id in entity_object:
+        entity = entity_object[channel_id]
+        district_id = entity['district_id']
+        insert_data_for_district_id(district_id)
 
-    # print(total, " messages processed", "failed", failed_count)
+        total += 1
+        print("insert_data_for_all_districts", "districts processed", total)
 
-        # parse_data_from_message_object(item, entity_id)
-    # for item in message_object:
-    #     print(item.message)
-    #     print()
-    for item in message_object:
-        if item.message is None:
-            continue
+def insert_slot_availability_event_from_parsed_data(parsed_data, state_id, district_id, timestamp):
+    event_details_json_data = json.dumps(parsed_data['event_details_json'])
 
-        parse_data_from_message_object(item, entity_id)
+    slot_event_record = SlotAvailabilityEvent(state_id = state_id,
+                                                timestamp = timestamp,
+                                                district_id = district_id,
+                                                center_name = str(parsed_data['center_name']),
+                                                pincode = str(parsed_data['pincode']),
+                                                event_details_json = event_details_json_data)
 
-# current_entitiy = client.get_entity(int('1243933312'))
-# message_object = client.get_messages(current_entitiy, limit=None)
-# identify_data_from_message_object(message_object, '1243933312')
+    event_id = str(timestamp)+'_'+str(district_id) + '_' + parsed_data['center_name']
 
-for entity in entity_object:
-    current_entitiy = client.get_entity(int(entity))
-    message_object = client.get_messages(current_entitiy, limit=None)
-    identify_data_from_message_object(message_object, entity)
+    slot_event_record.id = event_id
+    slot_event_record.save()
+
+
+def get_state_id_for_district_id(district_id):
+    channel_id = [channel_id for channel_id in entity_object if entity_object[channel_id]['district_id'] == district_id ][0]
+    return entity_object[channel_id]['state_id']
+
+
+def insert_slot_availability_events_for_district(district_id):
+    print("insert_slot_availability_events_for_district", district_id)
+
+    raw_messages = RawMessages.objects.filter(district_id=district_id)
+
+    total = 0
+    failed = 0
+
+    total_messages = len(raw_messages)
+
+    for raw_message in raw_messages:
+        message_string = raw_message.event_message
+        # message_string = 'Vaccination centers for 18-44 group:\n'+ '1. AIIMS BHUBANESWAR (Age 18-44) (AIIMS Urban) - Pin: 751019. Vaccine: COVAXIN.\n' + '217 slots are available on May 10\n' +'357 slots are available on May 11\n' +'\n' +'2. dummy center - Pin: 751019. Vaccine: COVAXIN.\n' + '23123 slots are available on May 10\n' +'34564364 slots are available on May 11\n';
+
+        try:
+            parsed_data_list = parse_message(message_string)
+
+
+            for parsed_data in parsed_data_list:
+                # print('insert_slot_availability_events_for_district', parsed_data)
+
+                state_id = get_state_id_for_district_id(district_id)
+
+                insert_slot_availability_event_from_parsed_data(parsed_data, state_id, district_id, raw_message.timestamp)
+        except:
+            failed += 1
+            print('insert_slot_availability_events_for_district failed for message string')
+            print(message_string)
+
+        total += 1
+
+        if total % 1000 == 0:
+            print('insert_slot_availability_events_for_district message processed', total, ' / ', total_messages, 'failed', failed)
+        
+
+    print('insert_slot_availability_events_for_district message processed', total, ' / ', total_messages, 'failed', failed)
+
+def get_district_id_list_from_channel_id_list(channel_id_list):
+    district_id_list = [entity_object[channel_id]['district_id'] for channel_id in channel_id_list]
+
+    return district_id_list
+
+def get_all_channel_ids():
+    channel_id_list = [channel_id for channel_id in entity_object]
+    return channel_id_list
+
+def insert_slot_availability_events_for_all_districts():
+    channel_id_list = get_all_channel_ids()
+
+    district_id_list = get_district_id_list_from_channel_id_list(channel_id_list)
+
+    for district_id in district_id_list:
+        insert_slot_availability_events_for_district(district_id)
+
+# get_messages_of_one_district('1458101449')
+insert_data_for_district_id(294)
+# insert_slot_availability_events_for_district(446)
+# insert_slot_availability_events_for_all_districts()
+
+
+def insert_live_message_into_raw_message_table(message):
+    date = message.date
+    peer_id = message.peer_id
+    channel_id = peer_id.channel_id
+    district_id = entity_object[channel_id]['district_id']
+
+def process_message_of_live_event_and_insert_into_raw_messages_table(message):
+    date = message.date
+    peer_id = message.peer_id
+    channel_id = peer_id.channel_id
+    district_id = entity_object[str(channel_id)]['district_id']
+    insert_into_raw_messages_table(message, district_id)
 
 
 
 @client.on(events.NewMessage())
 async def handler(event):
     event_str = str(event)
-    # print(event_str.Event)
+    peer_id = event.message.peer_id
 
+    # print(event)
+    # if peer_id.channel_id != 1243933312:
+    #     process_message_of_live_event_and_insert_into_raw_messages_table(event.message)
+    # print("event_str: ",event_str)
+    # print("event: ",event)
+    # peer_id = event.peer_id
+    # try:
+    #     print("Event Message: ", event.message)
+    #     if (peer_id.channel_id != 1243933312) or (peer_id.user_id != 1243933312):
+    #         print("Channel Id validated: ", peer_id)
+    #         identify_data_from_message(event.message)
+    # except:
+    #     print("Peer ID from except: ",peer_id)
 
 client.run_until_disconnected()
 

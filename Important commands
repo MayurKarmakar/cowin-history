@@ -1,0 +1,11 @@
+For taking mysql database backup command:
+
+mysqldump  table_name > table_name.sql
+
+
+For taking mysql database backup command (without date creation info):
+mysqldump -t -u mayur7  -p  slotAvailabiltyRecords slotTrackerApp_rawmessages > Backup/raw_messages_without_date_creation_01_07_2021.sql
+
+
+For taking mysql database backup command(witho date creation info):
+mysqldump -u mayur7  -p  slotAvailabiltyRecords slotTrackerApp_rawmessages > Backup/raw_messages_01_07_2021.sql
