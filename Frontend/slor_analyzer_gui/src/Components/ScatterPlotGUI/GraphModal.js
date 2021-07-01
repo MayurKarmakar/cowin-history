@@ -701,7 +701,7 @@ class GraphModal extends React.Component{
                         </div>
                         <div className='row pb-5'>
                             <div className='col-lg-12 col-sm-12 col-md-12 justify-content-start mt-5'>
-                                <p className='d-flex justify-content-start text-danger'>**The chart will be shown only for the latest 1000 data points.</p>
+                                <p className='d-flex justify-content-start text-danger'>**The chart will be shown only for the latest 500 data points.</p>
                                 <hr/>
                                 <h3 className='mb-3'>Slot availability events chart</h3>
                                 {this.state.error ? 

@@ -41,6 +41,8 @@ class DistrictWiseFilteredDataView(viewsets.ModelViewSet):
             # print('start_date: ', start_date_timstamp)
             # print('start_date: ', type(start_date_timstamp))
             end_date_string = self.request.GET.get('end_date', None)
+            start_date_string += ' 00:00:00 +0530'
+            end_date_string += ' 00:00:00 +0530'
 
             if district_id is not None:
                 # print(queryset.filter(district_id=int(district_id_value)))
@@ -68,6 +70,8 @@ class PincodeWiseFilteredDataView(viewsets.ModelViewSet):
             # print('start_date: ', start_date_timstamp)
             # print('start_date: ', type(start_date_timstamp))
             end_date_string = self.request.GET.get('end_date', None)
+            start_date_string += ' 00:00:00 +0530'
+            end_date_string += ' 00:00:00 +0530'
             
             if pincode is not None:
                 # return queryset.filter(pincode=str(pincode_value))
@@ -102,6 +106,8 @@ class CenterNameWiseFilteredDataView(viewsets.ModelViewSet):
             # print('start_date: ', start_date_timstamp)
             # print('start_date: ', type(start_date_timstamp))
             end_date_string = self.request.GET.get('end_date', None)
+            start_date_string += ' 00:00:00 +0530'
+            end_date_string += ' 00:00:00 +0530'
 
             if (input_center_name is not None):
                 return queryset.raw('SELECT * FROM slotTrackerApp_slotavailabilityevent WHERE state_id=%s AND center_name LIKE %s group by center_name', [state_id_value, '%'+input_center_name+'%'])
@@ -124,6 +130,9 @@ class DateRangeWiseFilteredDataView(viewsets.ModelViewSet):
             # print('start_date: ', start_date_timstamp)
             # print('start_date: ', type(start_date_timstamp))
             end_date_string = self.request.GET.get('end_date', None)
+
+            start_date_string += ' 00:00:00 +0530'
+            end_date_string += ' 00:00:00 +0530'
 
             if (start_date_string is not None) and (end_date_string is not None):
                 return queryset.raw("SELECT * FROM slotTrackerApp_slotavailabilityevent WHERE DATE(timestamp)>=%s AND DATE(timestamp)<=%s", [end_date_string ,start_date_string])
@@ -152,6 +161,9 @@ class VaccinationCenterDataView(viewsets.ModelViewSet):
             # print('start_date: ', start_date_timstamp)
             # print('start_date: ', type(start_date_timstamp))
             end_date_string = self.request.GET.get('end_date', None)
+
+            start_date_string += ' 00:00:00 +0530'
+            end_date_string += ' 00:00:00 +0530'
 
 
             if (district_id is not None) and (center_name is not None):
