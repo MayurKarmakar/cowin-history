@@ -72,6 +72,7 @@ class Graph extends React.Component{
                 },
                 min: 0,
                 max: 24*60,
+                minRange: 1,
                 tickInterval: 120,
                 labels: {
                     formatter: function () {

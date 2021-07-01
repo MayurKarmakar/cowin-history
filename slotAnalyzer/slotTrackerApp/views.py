@@ -106,8 +106,8 @@ class CenterNameWiseFilteredDataView(viewsets.ModelViewSet):
             # print('start_date: ', start_date_timstamp)
             # print('start_date: ', type(start_date_timstamp))
             end_date_string = self.request.GET.get('end_date', None)
-            start_date_string += ' 00:00:00'
-            end_date_string += ' 23:59:59'
+            # start_date_string += ' 00:00:00'
+            # end_date_string += ' 23:59:59'
 
             if (input_center_name is not None):
                 return queryset.raw('SELECT * FROM slotTrackerApp_slotavailabilityevent WHERE state_id=%s AND center_name LIKE %s group by center_name', [state_id_value, '%'+input_center_name+'%'])
@@ -135,7 +135,7 @@ class DateRangeWiseFilteredDataView(viewsets.ModelViewSet):
             end_date_string += ' 23:59:59'
 
             if (start_date_string is not None) and (end_date_string is not None):
-                return queryset.raw("SELECT * FROM slotTrackerApp_slotavailabilityevent WHERE timestamp between CONVERT_TZ(%s, '+05:30', '+00:00') and CONVERT_TZ(%s, '+05:30', '+00:00') order by timestamp desc limit 500", [end_date_string ,start_date_string])
+                return queryset.raw("SELECT * FROM slotTrackerApp_slotavailabilityevent WHERE DATE(timestamp)>=%s AND DATE(timestamp)<=%s", [end_date_string ,start_date_string])
                 # print(queryset)
                 # return queryset
             
@@ -167,6 +167,6 @@ class VaccinationCenterDataView(viewsets.ModelViewSet):
 
 
             if (district_id is not None) and (center_name is not None):
-                return queryset.raw('SELECT * FROM slotTrackerApp_slotavailabilityevent WHERE district_id=%s AND center_name=%s AND DATE(timestamp)>=%s AND DATE(timestamp)<=%s', [district_id, center_name, start_date_string, end_date_string])
+                return queryset.raw("SELECT * FROM slotTrackerApp_slotavailabilityevent WHERE district_id=%s AND center_name=%s AND timestamp between CONVERT_TZ(%s, '+05:30', '+00:00') and CONVERT_TZ(%s, '+05:30', '+00:00') order by timestamp desc limit 500", [district_id, center_name, start_date_string, end_date_string])
             
             return queryset
