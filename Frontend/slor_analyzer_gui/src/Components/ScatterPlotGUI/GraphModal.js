@@ -248,7 +248,7 @@ class GraphModal extends React.Component{
                 return
             }
 
-            urlPath = `${this.baseApiUrl}pincode/?pincode=${inputPincode}`
+            urlPath = `${this.baseApiUrl}pincode/?pincode=${inputPincode.trim()}`
         }
 
 

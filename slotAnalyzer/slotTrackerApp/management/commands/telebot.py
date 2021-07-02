@@ -538,7 +538,7 @@ def update_for_last_n_days(days):
     insert_data_for_all_districts(500*days)
     insert_slot_availability_events_for_all_districts(a)
 
-
+# update_for_last_n_days(2)
 
             
             
@@ -578,7 +578,7 @@ def test_bbmp_parsing():
     print('format1', format1, 'format2', format2)
 
 # test_bbmp_parsing()
-update_for_last_n_days(2)
+
 
 
 def process_message_of_live_event_and_insert_into_raw_messages_table(message):
@@ -596,7 +596,7 @@ async def handler(event):
     event_str = str(event)
     peer_id = event.message.peer_id
     print("Event message: ", event.message)
-    # process_message_of_live_event_and_insert_into_raw_messages_table(event.message)
+    process_message_of_live_event_and_insert_into_raw_messages_table(event.message)
 
 
 client.run_until_disconnected()
