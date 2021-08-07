@@ -267,6 +267,8 @@ def parse_message_general_logic(message):
 
     # parsed_data['state_id'] = entity_object[channel_id]['state_id']
     # parsed_data['district_id'] = entity_object[channel_id]['district_id']
+    if 'Vaccination centers' not in message:
+        return
 
     splited_message_list = message.split('\n')
     print("splited_message_list: ", splited_message_list)
@@ -485,6 +487,8 @@ def parsing_logic_for_new_message_structure(message_string):
                 parsed_data['cost'] = 'Free'
             elif 'Paid' in item:
                 parsed_data['cost'] = 'No information'
+            elif re.search(r'\d', item):
+                parsed_data['cost'] = 'No information'
             else:
                 cost_detail_pos = re.search(r'[0-9]+', item)
                 print("cost_detail_pos: ", cost_detail_pos.start())
@@ -609,6 +613,8 @@ def insert_raw_message_to_slot_availability_event(raw_message, district_id):
     message_string = raw_message.event_message
     parsed_data_list = parse_message(message_string, district_id)
 
+    if parsed_data_list is None:
+        return
 
     for parsed_data in parsed_data_list:
         # print('insert_slot_availability_events_for_district', parsed_data)
@@ -685,7 +691,7 @@ def update_for_last_n_days(days):
     # insert_data_for_all_districts(1000*days)
     insert_slot_availability_events_for_all_districts(a)
 
-update_for_last_n_days(4)
+update_for_last_n_days(64)
 
             
             

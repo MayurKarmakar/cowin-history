@@ -3,39 +3,24 @@ from telethon import TelegramClient, events, sync
 from slotTrackerApp.models import Predictions
 from datetime import date, datetime, tzinfo, timedelta
 from dateutil import tz
+import re
 
-
-from_zone = tz.tzutc()
-to_zone = tz.tzlocal()
-
-records = Predictions.objects.all()
-
-crt = datetime.now()
-crt_date = crt.day
-print("Current Day: ", crt_date)
-
-if crt_date > 30:
-    print("Yes day greater")
-# time_past_an_hour = crt - timedelta(hours = 1)
-print("CUrrent time: ",crt)
-print("Time past 1 hrs: ", (crt - timedelta(hours = 1)).time())
-print("Time past 1 hrs: ", type((crt - timedelta(hours = 1)).time()))
-print("Records fetched: ", records[0])
-for record in records:
-    print("Record at idx 0: ", record)
-    print("TIme in record",record.timestamp)
-    print("Record TIme: ", record.timestamp.time())
-    print("Record TIme in IND timezone: ", ((record.timestamp) + timedelta(hours=5, minutes=30)).time())
-    print()
-
-    # utc = datetime.strptime(datetime.isoformat(record.timestamp).replace('T', ' ').split('.')[0], '%Y-%m-%d %H:%M:%S')
-    # # utc = datetime(record.timestamp).time(tzinfo=from_zone)
-    # utc = utc.replace(tzinfo=from_zone)
-    # central = utc.astimezone(to_zone).time()
-    # print("Centeral time type: ", type(central))
-    # if crt > central:
-    #     print("Yes")
-    # print(central)
+item = 'Cost: Rs.'
+parsed_data = dict()
+if re.search(r'Cost' , item):
+            if 'Free' in item:
+                parsed_data['cost'] = 'Free'
+            elif 'Paid' in item:
+                parsed_data['cost'] = 'No information'
+            elif not re.search(r'\d', item):
+                print("No number")
+            else:
+                cost_detail_pos = re.search(r'[0-9]+', item)
+                print("cost_detail_pos: ", cost_detail_pos.start())
+                cost_detail = item[cost_detail_pos.start(): cost_detail_pos.end()]
+                print("Cost_detail: ", cost_detail)
+                splitted_cost_detail = cost_detail.split(" ")
+                parsed_data['cost'] = int(cost_detail)
 
 class Command(BaseCommand):
     help = "Fetches data from telegram App"
