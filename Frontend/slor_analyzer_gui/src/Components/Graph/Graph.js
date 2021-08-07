@@ -2,7 +2,7 @@ import React from 'react'
 // import classes from './GraphCss.css'
 import Highcharts from 'highcharts';
 import HighchartsReact from 'highcharts-react-official';
-import axios from 'axios';
+
 
 
 function formatAMPM(date) {
@@ -22,7 +22,7 @@ function getStartOfDay(timestamp){
     return day.getTime()
 }
 
-const timezone = new Date().getTimezoneOffset()
+// const timezone = new Date().getTimezoneOffset()
 
 Highcharts.setOptions({
     time: {
@@ -38,9 +38,7 @@ class Graph extends React.Component{
         centersInSelectedDisctrict: null,
         isLoading: '',
         myChart: {
-            // time: {
-            //     timezone: 'Asia/Kolkata'
-            // },
+
             chart: {
                 type: 'scatter',
                 zoomType: 'xy'
@@ -48,9 +46,7 @@ class Graph extends React.Component{
             title: {
                 text: 'Vaccination slot availability analysis.'
             },
-            // subtitle: {
-            //     text: 'Source: Heinz  2003'
-            // },
+
             credits: {
                 enabled: false
             },
@@ -63,7 +59,6 @@ class Graph extends React.Component{
                 tickInterval: 24 * 3600 * 1000,
                 dateTimeLabelFormats: {
                     
-                    // second: '%d %b %Y'
                 },
             },
             yAxis: {
@@ -103,9 +98,14 @@ class Graph extends React.Component{
                 formatter: function () {
                     let cost = null
                     let time = formatAMPM(new Date(this.point.timestamp))
-                    this.point.cost == null? cost='No information': cost=this.point.cost
+
+                    cost = this.point.eventDetailsJson.sessions.map(cost=>cost.cost).toString()
+
+                    if ((cost.indexOf('R') === -1) && (cost !== 'Free')){
+                        cost = 'Rs.'+cost
+                    }
                     let s = `Time: ${time}<br/>Centre Name: ${this.point.centerName}<br/>Cost: ${cost}<br/>`
-                    let eventDetails = this.point.eventDetails;
+                    // let eventDetails = this.point.eventDetails;
                     this.point.eventDetailsJson.sessions.map((eventDetails) => {
                         s += `<b>${eventDetails.vaccine}</b><br/>**Doses available on ${new Date(getStartOfDay(eventDetails.timestamp)).toISOString().slice(0, 10)}<br/>`
                         s += `Dose1 = ${eventDetails.available_capacity_dose1} Dose2 = ${eventDetails.available_capacity_dose2}<br/>`
@@ -115,30 +115,11 @@ class Graph extends React.Component{
                 }
             },
             series: []
-
-            // series: [
-            //     {
-            //         name: 'covacibn',
-            //         data: [ {
-            //             x: 123123,
-            //             y: 2342343
-                    
-            //         }]
-            //     },
-            //     {
-            //         name: 'covisheidl',
-            //         data: [ {
-            //             x: 123123,
-            //             y: 2342343
-                    
-            //         }]
-            //     }
-            // ]
         }
     }
 
     componentDidUpdate = (prevProps, prevState, Snapshot) => {
-        console.log("Props received: [COmponent Did UPdate]", this.props.dataObject)
+        // console.log("Props received: [COmponent Did UPdate]", this.props.dataObject)
         if(prevProps.dataObject !== this.props.dataObject){
             this.setState({
                 apiData: this.props.dataObject,
@@ -176,7 +157,7 @@ class Graph extends React.Component{
     }
 
     componentDidMount = () => {
-        console.log("Props received: [COmponent Did Mount]", this.props.dataObject)
+        // console.log("Props received: [COmponent Did Mount]", this.props.dataObject)
         if(this.props.dataObject.length !== 0){
             this.setState({
                 apiData: this.props.dataObject,
@@ -215,7 +196,7 @@ class Graph extends React.Component{
 
 
     prepareDataforVisuals = (data) => {
-        console.log("prepareDataforVisuals: ", data)
+        // console.log("prepareDataforVisuals: ", data)
         let seriesData = {'Events': []}
 
         data.forEach(item  => {

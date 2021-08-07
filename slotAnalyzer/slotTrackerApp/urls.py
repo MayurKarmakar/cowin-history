@@ -11,5 +11,7 @@ router.register(r'pincode', views.PincodeWiseFilteredDataView, basename='Pincode
 router.register(r'center_name', views.CenterNameWiseFilteredDataView, basename='CenterNameWiseFilteredDataView')
 router.register(r'date/range_filter', views.DateRangeWiseFilteredDataView, basename='DateRangeWiseFilteredDataView')
 router.register(r'center/data', views.VaccinationCenterDataView, basename='VaccinationCenterDataView')
+router.register(r'submit_job', views.PredictionRequestCreateView, basename='PredictionRequestCreateView')
+router.register(r'predictions', views.PredictionsDetailView, basename='PredictionsDetailView')
 
 urlpatterns = router.urls

@@ -4,11 +4,20 @@ import { NavLink } from 'react-router-dom'
 import AsyncSelect from 'react-select/async'
 import Select from 'react-select'
 import axios from 'axios'
-import { DateRangePicker, SingleCalender  } from 'rsuite'
+import { DateRangePicker } from 'rsuite'
 import 'rsuite/dist/styles/rsuite-default.css';
 import LoadingOverlay from 'react-loading-overlay'
 import BounceLoader from 'react-spinners/BounceLoader'
 import {startOfDay, endOfDay, addDays, subDays} from 'date-fns'
+import PredictionChart from '../PredictionChart/PredictionChart'
+import BarLoader from 'react-spinners/BarLoader'
+import { css } from '@emotion/react'
+
+const override = css`
+  display: block;
+  margin: 0 auto;
+  border-color: red;
+`;
 
 
 const statesData = {"states":[{"state_id":1,"state_name":"Andaman and Nicobar Islands"},{"state_id":2,"state_name":"Andhra Pradesh"},{"state_id":3,"state_name":"Arunachal Pradesh"},{"state_id":4,"state_name":"Assam"},{"state_id":5,"state_name":"Bihar"},{"state_id":6,"state_name":"Chandigarh"},{"state_id":7,"state_name":"Chhattisgarh"},{"state_id":8,"state_name":"Dadra and Nagar Haveli"},{"state_id":37,"state_name":"Daman and Diu"},{"state_id":9,"state_name":"Delhi"},{"state_id":10,"state_name":"Goa"},{"state_id":11,"state_name":"Gujarat"},{"state_id":12,"state_name":"Haryana"},{"state_id":13,"state_name":"Himachal Pradesh"},{"state_id":14,"state_name":"Jammu and Kashmir"},{"state_id":15,"state_name":"Jharkhand"},{"state_id":16,"state_name":"Karnataka"},{"state_id":17,"state_name":"Kerala"},{"state_id":18,"state_name":"Ladakh"},{"state_id":19,"state_name":"Lakshadweep"},{"state_id":20,"state_name":"Madhya Pradesh"},{"state_id":21,"state_name":"Maharashtra"},{"state_id":22,"state_name":"Manipur"},{"state_id":23,"state_name":"Meghalaya"},{"state_id":24,"state_name":"Mizoram"},{"state_id":25,"state_name":"Nagaland"},{"state_id":26,"state_name":"Odisha"},{"state_id":27,"state_name":"Puducherry"},{"state_id":28,"state_name":"Punjab"},{"state_id":29,"state_name":"Rajasthan"},{"state_id":30,"state_name":"Sikkim"},{"state_id":31,"state_name":"Tamil Nadu"},{"state_id":32,"state_name":"Telangana"},{"state_id":33,"state_name":"Tripura"},{"state_id":34,"state_name":"Uttar Pradesh"},{"state_id":35,"state_name":"Uttarakhand"},{"state_id":36,"state_name":"West Bengal"}],"ttl":24}
@@ -48,7 +57,7 @@ const stateNameMap = createStateNameMap()
 
 const loadStatesOptions = () => {
     const statesOptions = Object.entries(districtsData).map(([k, v]) => {return {value: k, label: stateNameMap[k]}})
-    console.log("statesOptions", statesOptions);
+    // console.log("statesOptions", statesOptions);
     return statesOptions;
 }
 
@@ -94,6 +103,12 @@ class GraphModal extends React.Component{
         isLoading: false,
         searchMode: 'state-dist',
         error: '',
+        predictionData: '',
+        showDelayModal: '',
+        messageOnDelay: '',
+        showPredictionModal: true,
+        predictionModalErrorMessage: '',
+        pincodeSearchErrorMessage: '',
         districts: {
 
         },
@@ -193,22 +208,30 @@ class GraphModal extends React.Component{
             this.setState({
                 selectedDistrict: item,
                 selectedDistrictId: districtId,
+                predictionData: '',
+                messageOnDelay: '',
+                showPredictionModal: true,
+                predictionModalErrorMessage: ''
             }, ()=>{
                 this.updateChart()
             })
         }else{
             this.setState({
                 selectedDistrictId: '',
-                selectedDistrict: null
+                selectedDistrict: null,
+                predictionData: '',
+                messageOnDelay: '',
+                showPredictionModal: true,
+                predictionModalErrorMessage: ''
             }, ()=> this.updateChart())
         }
     }
     // autoSuggestionMaker = () => {
-    baseApiUrl = 'https://api.cowinhistory.com/slots/'
-    // baseApiUrl = 'http://localhost:8000/slots/'
+    // baseApiUrl = 'https://api.cowinhistory.com/slots/'
+    baseApiUrl = 'http://localhost:8000/slots/'
 
     updateChart = () => {
-        let {searchMode, selectedDistrictId, inputPincode, selectedCenterName, startDateString, endDateString} = this.state
+        let {searchMode, selectedDistrictId, inputPincode, selectedCenterName, startDateString, endDateString, pincodeSearchErrorMessage} = this.state
 
         let urlPath = ''
         if (searchMode === 'state-dist') {
@@ -234,7 +257,39 @@ class GraphModal extends React.Component{
         if (searchMode === 'pincode') {
             if (!inputPincode) {
                 this.setState({
-                    error: 'Please select the pincode'
+                    error: 'Please enter a pincode.'
+                })
+                return
+            }
+
+            if (isNaN(parseInt(inputPincode)) && (inputPincode.length < 6 || inputPincode.length > 6)){
+                
+                this.setState({
+                    pincodeSearchErrorMessage: <p className='text-danger pt-2'>**Pincode must be a number and 6 digits long.</p>
+                })
+                return
+            }
+
+            if (isNaN(parseInt(inputPincode)) && (inputPincode.length === 6)){
+                
+                this.setState({
+                    pincodeSearchErrorMessage: <p className='text-danger pt-2'>**Pincode must be a number.</p>
+                })
+                return
+            }
+
+            if ((inputPincode.length !== 6) && (isNaN(parseInt(inputPincode)))){
+
+                this.setState({
+                    pincodeSearchErrorMessage: <p className='text-danger pt-2'>**Pincode must be a number and 6 digits long.</p>
+                })
+                return
+            }
+
+            if ((inputPincode.length !== 6) && (!isNaN(parseInt(inputPincode)))){
+
+                this.setState({
+                    pincodeSearchErrorMessage: <p className='text-danger pt-2'>**Pincode must 6 digits long.</p>
                 })
                 return
             }
@@ -276,55 +331,39 @@ class GraphModal extends React.Component{
                 error: 'Unknown error happened. Please refresh the page to continue.',
                 isLoading: false
             })
-            console.log(err)
+            // console.log(err)
         })
     }
     // }
     pincodeInputHandler = (e) =>{
         // console.log("Pincode value: ", e.target.value)
+
         this.setState({
             inputPincode: e.target.value,
+            predictionData: '',
+            messageOnDelay: '',
+            showPredictionModal: true,
+            predictionModalErrorMessage: ''
         })
     }
 
     pincodeSearchHandler = () => {
-        if(!isNaN(this.state.inputPincode)){
-            axios.get(`http://127.0.0.1:8000/slots/pincode/?pincode=${this.state.inputPincode}`).then(res => {
-                res.data.length !== 0?
-                this.setState({
-                    collectedData: res.data,
-                    isNoDataAvailable: false,
-                    showOverlay: false
-                })
-                : this.setState({
-                    isNoDataAvailable: true
-                })
-            }).catch(err => {
-                console.log("ERR pincode: ",err)
+
+        axios.get(`http://127.0.0.1:8000/slots/pincode/?pincode=${this.state.inputPincode}`).then(res => {
+            res.data.length !== 0?
+            this.setState({
+                collectedData: res.data,
+                isNoDataAvailable: false,
+                showOverlay: false
             })
-        }
+            : this.setState({
+                isNoDataAvailable: true
+            })
+        }).catch(err => {
+            // console.log("ERR pincode: ",err)
+        })
     }
 
-    dataForCenterSearchHandler = (district_id, center_name) =>{
-        // this.updateChart(this.state.)
-        // let selectedDistrict = district_id
-        // let selectedCenterName = center_name
-        // let urlPath = `http://127.0.0.1:8000/slots/center/data/?district_id=${district_id}&center_name=${center_name}`
-
-        // axios.get(urlPath).then(res=>{
-        //     this.setState({
-        //         collectedData: res.data,
-        //         isNoDataAvailable: false,
-        //         showOverlay: false,
-        //     })
-        // }).catch(err =>{
-        //     console.log(err)
-        // })
-    }
-
-    getDataByCenterName = () => {
-        console.log("Selected center name: ", this.state.selectedCenterName)
-    }
     onChange = (value) =>{
         // let {valueDict} = label.value
         // console.log("label", value.value)
@@ -335,7 +374,11 @@ class GraphModal extends React.Component{
             this.setState({
                 selectedDistrictId: value.value.district_id,
                 selectedCenterName: value.value.center_name,
-                selectedCenter: value
+                selectedCenter: value,
+                predictionData: '',
+                messageOnDelay: '',
+                showPredictionModal: true,
+                predictionModalErrorMessage: ''
             }, ()=>
                 this.updateChart()
             )
@@ -344,7 +387,8 @@ class GraphModal extends React.Component{
             this.setState({
                 selectedCenterName: '',
                 selectedDistrictId: '',
-                selectedCenter: null
+                selectedCenter: null,
+                showPredictionModal: true
             }, ()=>
                 this.updateChart()
             )
@@ -365,7 +409,7 @@ class GraphModal extends React.Component{
             await axios.get(`${this.baseApiUrl}center_name?state_id=${this.state.selectedStateId}&center_name_like=${textInput}`).then(res=>{
                 collectedMatchedData = res.data
             }).catch(err=>{
-                console.log(err)
+                // console.log(err)
             })
             callback(collectedMatchedData.map(i => ({label: i.center_name + '(' + districtNameMap[i.district_id] + ')', value: {center_name: i.center_name, district_id: i.district_id}, id: i.district_id})))
         }
@@ -374,13 +418,13 @@ class GraphModal extends React.Component{
 
     loadStatesOptions = () => {
         const statesOptions = Object.entries(districtsData).map(([k, v]) => {return {value: k, label: stateNameMap[k]}})
-        console.log("statesOptions", statesOptions);
+        // console.log("statesOptions", statesOptions);
         return statesOptions;
     }
     onStateChangeInCenter = (item) => {
         let stateId = ''
         
-        console.log('onStateChangeInCenter', item)
+        // console.log('onStateChangeInCenter', item)
         if (item) {
             stateId = item.value
         }
@@ -388,7 +432,11 @@ class GraphModal extends React.Component{
         this.setState({
             selectedStateId: stateId,
             selectedCenter: null,
-            selectedCenterName: null
+            selectedCenterName: null,
+            predictionData: '',
+            messageOnDelay: '',
+            showPredictionModal: true,
+            predictionModalErrorMessage: ''
         }, () => this.updateChart())
         
     }
@@ -400,21 +448,21 @@ class GraphModal extends React.Component{
     }
     
     dateRangeDataSearchHandler = (dateRange) => {
-        console.log("Date range data", dateRange)
-        console.log("Date range data 1",dateRange[0])
-        console.log("Date range data 2",dateRange[1])
+        // console.log("Date range data", dateRange)
+        // console.log("Date range data 1",dateRange[0])
+        // console.log("Date range data 2",dateRange[1])
         if (dateRange.length !== 0 && dateRange.length === 2){
             let startDate = new Date(dateRange[0])
             startDate.setHours(startDate.getHours()+5)
             startDate.setMinutes(startDate.getMinutes()+30)
             let startDateString = startDate.toISOString().split('T')[0]
-            console.log("startDateString: ", startDateString)
+            // console.log("startDateString: ", startDateString)
             let endDate = new Date(dateRange[1])
             endDate.setHours(endDate.getHours()+5)
             endDate.setMinutes(endDate.getMinutes()+30)
             let endDateString = endDate.toISOString().split('T')[0]
-            console.log("endDateString: ", endDateString)
-            console.log("endDateString: ", endDateString)
+            // console.log("endDateString: ", endDateString)
+            // console.log("endDateString: ", endDateString)
             // let startDate = new Date(dateRange[0]).toISOString().split('T')[0]
             // console.log(startDate)
             // let endDate = new Date(dateRange[1]).toISOString().split('T')[0]
@@ -470,14 +518,204 @@ class GraphModal extends React.Component{
             districtList: districtList, 
             selectedDistrictId: '', 
             selectedDistrict: null, 
-            selectedStateId: stateId
+            selectedStateId: stateId,
+            predictionData: '',
+            messageOnDelay: '',
+            showPredictionModal: true,
+            predictionModalErrorMessage: ''
         },
         ()=>this.updateChart())
     }
 
 
+    predictionButtonHandler = () => {
+        
+        let searchModeTab = this.state.searchMode
+        let {selectedCenterName, selectedDistrictId, selectedStateId, inputPincode} = this.state
+        let errorMessage = ''
+
+        if (searchModeTab === 'state-dist'){
+
+            if ((selectedStateId === '') && (selectedDistrictId === '')){
+
+                errorMessage = <p className="text-danger pt-2">**Select the state and district to request for predictions...</p>
+            }
+
+        }else if (searchModeTab === 'center'){
+            
+            if ((selectedStateId === '') && (selectedCenterName === '')){
+
+                errorMessage = <p className="text-danger pt-2">**Select the state and center name to request for predictions...</p>
+
+            }
+        }else if (searchModeTab === 'pincode'){
+
+            if (inputPincode === ''){
+                
+                errorMessage = <p className="text-danger pt-2">**Enter a valid pincode to request for predictions...</p>
+
+            }
+        }
+
+        if (errorMessage != ''){
+            this.setState({
+                predictionModalErrorMessage: errorMessage
+            })
+            return
+        }else{
+
+            this.setState({
+                predictionModalErrorMessage: errorMessage
+            })
+
+        }
+
+        if(this.state.predictionModalErrorMessage === ''){
+            this.setState({
+                showDelayModal: true,
+                showPredictionModal: false,
+                messageOnDelay : (
+                    <div>
+                        <h4 className='pt-3 text-secondary'>Submitting your request...</h4>
+                        <div class="spinner-border text-warning" role="status">
+                            <span class="sr-only "></span>
+                        </div>
+                        <BarLoader color={'#065c1f'} loading={true} css={override} size={300}/>
+                    </div>
+                )
+            })
+
+            let predictionApiFetchDataPath = `http://localhost:8000/slots/predictions/`
+            let predictionApiSubmitRequestPath = `http://localhost:8000/slots/submit_job/`
+            let searchMode = this.state.searchMode
+            let districtId = null
+            let centerName = null
+            let pincode = null
+            let id = null
+
+            if (searchMode === 'state-dist'){
+                districtId = this.state.selectedDistrictId
+                id = `district_id_${districtId}`
+                predictionApiFetchDataPath += `district_id_${districtId}/`
+            }else if(searchMode === 'center'){
+                centerName = this.state.selectedCenterName
+                districtId = this.state.selectedDistrictId
+                id = `district_id_${districtId}_center_name_${centerName}`
+                predictionApiFetchDataPath += `district_id_${districtId}_center_name_${centerName}/`
+            }else if(searchMode === 'pincode'){
+                pincode = this.state.inputPincode
+                id = `pincode_${pincode}`
+                predictionApiFetchDataPath += `pincode_${pincode}/`
+            }
+            
+            // console.log("predictionApiSubmitRequestPath: ",predictionApiSubmitRequestPath)
+            // requestStartTime = new Date().getMinutes
+            axios.post(predictionApiSubmitRequestPath, {
+                id: id,
+                district_id: districtId,
+                pincode: pincode,
+                center_name: centerName,
+                time_statistics_json: null,
+                forecast_json: null,
+                status: 'submitted'
+            }).then(res=>{
+                if (res.status === 201){
+
+                    this.setState({
+                        showDelayModal: true,
+                        messageOnDelay : (
+                            <div>
+                                <h4 className='pt-3'>Your request has been submitted...</h4>
+                                <div className='pt-3'>
+                                    <BarLoader color={'#68aae8'} loading={true} css={override} size={300}/>
+                                </div>
+                            </div>
+                        ),
+                        showPredictionModal: false,
+                        predictionModalErrorMessage: ''
+                        
+                    })
+                }
+            }).catch(err=>{
+
+                if(err.response.status === 400){
+                    this.setState({
+                        messageOnDelay: (
+                            <div>
+                                <h4 className='pt-3'>Fetching prediction data...</h4>
+                                <div className='pt-3'>
+                                    <BarLoader color={'#68aae8'} loading={true} css={override} size={300}/>
+                                </div>
+                            </div>
+                        )
+                    })
+                    axios.get(predictionApiFetchDataPath).then(res=>{
+                        this.setState({
+                            predictionData: res.data,
+                            showDelayModal: false,
+                            messageOnDelay: ''
+                        })
+                    }).catch(err=>{
+                        console.log(err.response)
+                    })
+                }
+
+            })
+            
+            
+
+            setTimeout(()=>{
+                if (this.state.predictionData === ''){
+                    this.setState({
+                        messageOnDelay: (
+                            <div>
+                                <h4 className='pt-3'>Working on predictions...</h4>
+                                <div className='pt-3'>
+                                    <BarLoader color={'#68aae8'} loading={true} css={override} size={300}/>
+                                </div>
+                            </div>
+                        )
+                    })
+                }
+            },10000)
+
+            setTimeout(()=>{
+                axios(predictionApiFetchDataPath,{
+                    id: id
+                }).then(res=>{
+                    this.setState({
+                        predictionData: res.data,
+                        showDelayModal: false
+                    })
+                }).catch(err=>{
+                    console.log(err.response)
+                })
+            }, 30000)
+
+            setTimeout(()=>{
+                if (this.state.predictionData === ''){
+                    this.setState({
+                        messageOnDelay: (
+                                        <div>
+                                            <h4 className='pt-3'>It's taking a bit longer time...</h4>
+                                            <div className='pt-3'>
+                                                <BarLoader color={'#68aae8'} loading={true} css={override} size={300}/>
+                                            </div>
+                                        </div>
+                                        )
+                    })
+                }else{
+
+                    // window.clearInterval(waitIntervalHandler)
+                }
+            }, 15000)
+        }
+
+    }
+
+
     activeTabHandler = (e) => {
-        console.log("Tab id: ", e.target.id)
+        // console.log("Tab id: ", e.target.id)
         if (e.target.id === 'state-dist'){
             this.setState({
                 distCenterTabClass: "nav-link",
@@ -492,8 +730,12 @@ class GraphModal extends React.Component{
                 selectedCenterName: '',
                 showOverlay: true,
                 selectedCenter: null,
-                searchMode: 'state-dist'
-
+                searchMode: 'state-dist',
+                predictionData: '',
+                messageOnDelay: '',
+                showPredictionModal: true,
+                predictionModalErrorMessage: '',
+                showDelayModal: false
             }, ()=>{
                 this.updateChart()
             })
@@ -513,8 +755,12 @@ class GraphModal extends React.Component{
                 inputPincode: '', 
                 showOverlay: true,   
                 selectedCenter: null,        
-                searchMode: 'center'
-
+                searchMode: 'center',
+                predictionData: '',
+                messageOnDelay: '',
+                showPredictionModal: true,
+                predictionModalErrorMessage: '',
+                showDelayModal: false
             }, ()=>{
                 this.updateChart()
             })
@@ -532,14 +778,25 @@ class GraphModal extends React.Component{
                 selectedCenterName: '',
                 showOverlay: true,
                 selectedCenter: null,
-                searchMode: 'pincode'
-
+                searchMode: 'pincode',
+                predictionData: '',
+                messageOnDelay: '',
+                stshowPredictionModal: true,
+                predictionModalErrorMessage: '',
+                showDelayModal: false
             }, ()=>{
                 this.updateChart()
             })
         }
     }
     componentDidUpdate = (prevProp, prevState) => {
+
+        if (prevState.searchMode !== this.state.searchMode){
+            this.setState({
+                collectedData: ''
+            })
+        }
+
     }
 
     componentDidMount = () => {
@@ -571,7 +828,38 @@ class GraphModal extends React.Component{
 
 
     render(){
-
+        let delayMessage = this.state.messageOnDelay
+        let errorMsginPincodeSearchMode = this.state.pincodeSearchErrorMessage
+        let predictioModal = (
+            this.state.collectedData !== ''?
+                (<div>
+                    <div className='row'>
+                        <div className='col'>
+                            <h5>To know the slot availability event chances in the future dates press the button. </h5>
+                        </div>
+                    </div>
+                    <div className='row pt-2'>
+                        <div className='col'>
+                            <button type="submit" class="btn btn-primary btn-sm" onClick={this.predictionButtonHandler}>Predict</button>
+                        </div>
+                    </div>
+                </div>)
+            : (
+                <div>
+                    <div className='row'>
+                        <div className='col'>
+                            <h5>To know the slot availability event chances in the future dates press the button. </h5>
+                        </div>
+                    </div>
+                    <div className='row pt-2'>
+                        <div className='col'>
+                            <button type="submit" class="btn btn-primary btn-sm" onClick={this.predictionButtonHandler} disabled>Predict</button>
+                        </div>
+                    </div>
+                </div>
+            )
+        )
+        console.log("Collected data length: ", this.state.collectedData.length)
         return (
             <React.Fragment>
                 <div className='row justify-content-center d-lg-block m-2 m-md-5 m-lg-5'>
@@ -651,17 +939,20 @@ class GraphModal extends React.Component{
                                 {this.state.searchMode === 'pincode' && 
                                     <div>
                                     <div className='pt-3'>
-                                        <label htmlFor="pincode-input" className='fw-bold'>Pincode</label>
-                                        <input type="string" class="form-control" id="pincode-input" onChange={this.pincodeInputHandler} placeholder='Enter a valid pincode...'/>
+                                        <div>
+                                            <label htmlFor="pincode-input" className='fw-bold'>Pincode</label>
+                                            <input type="string" class="form-control" id="pincode-input" onChange={this.pincodeInputHandler} placeholder='Enter a valid pincode...'/>
+                                            <button type="submit" class="btn btn-primary mt-3" onClick={this.updateChart}>Show Data</button>
+                                            {errorMsginPincodeSearchMode !== ''? errorMsginPincodeSearchMode: null}
+                                        </div>
                                     </div>
-                                    {this.state.isPincodeFilterError?
+                                    {/* {this.state.isPincodeFilterError?
                                         <div value={this.state.isPincodeFilterError}>
                                             <small class="form-text text-muted">The pincode entered seems <strong>not to be a valid pincode</strong>. Try again with a valid pincode.</small>
-                                            <button type="submit" class="btn btn-primary mt-3" onClick={this.pincodeSearchHandler} disabled>Show Data</button>
                                         </div>
                                         : 
                                         <button type="submit" class="btn btn-primary mt-3" onClick={this.updateChart}>Show Data</button>
-                                    }
+                                    } */}
                                 </div>
                                 }
                             </div>
@@ -751,6 +1042,22 @@ class GraphModal extends React.Component{
                                 } */}
 
                                 </div>
+                            </div>
+                            <hr/>
+                        </div>
+                        {this.state.showPredictionModal ? predictioModal : null}
+                        {this.state.predictionModalErrorMessage != '' ? this.state.predictionModalErrorMessage: null}
+                        
+                        <div className='row pt-3'>
+                            <div className='col'>
+                                {this.state.showDelayModal? (
+                                    <div> 
+                                        {delayMessage}
+                                    </div>)
+                                :
+                                    <PredictionChart predictionData={this.state.predictionData} stateName={stateNameMap[this.state.selectedStateId]} districtName={districtNameMap[this.state.selectedDistrictId]} 
+                                    centerName={this.state.selectedCenterName} pincode={this.state.inputPincode} searchMode={this.state.searchMode} />
+                                }
                             </div>
                         </div>
                     </div>        

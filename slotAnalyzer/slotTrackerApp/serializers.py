@@ -236,3 +236,23 @@ class GeneralSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = None
+
+class PredictionCreateSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = models.Predictions
+        fields = '__all__'
+
+class RetrievePredictionsSerializer(serializers.ModelSerializer):
+
+    time_statistics_json = serializers.SerializerMethodField()
+    forecast_json = serializers.SerializerMethodField()
+
+    class Meta:
+        model = models.Predictions
+        fields = "__all__"
+    
+    def get_time_statistics_json(self, obj):
+        return json.loads(obj.time_statistics_json)
+    
+    def get_forecast_json(self, obj):
+        return json.loads(obj.forecast_json)

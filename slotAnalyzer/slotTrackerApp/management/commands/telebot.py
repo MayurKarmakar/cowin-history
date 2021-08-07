@@ -7,7 +7,7 @@ from telethon.tl.functions import ReqDHParamsRequest
 from telethon.tl.types import PeerUser
 from slotTrackerApp.models import RawMessages, SlotAvailabilityEvent
 import re
-from telethon import TelegramClient, events, sync
+from telethon import TelegramClient, events, errors, sync
 from datetime import  datetime, timedelta
 import pytz
 import json
@@ -37,7 +37,7 @@ entity_object = {
     '1491978120': {'state_id': 26, 'district_id': 452},
     '1150676780': {'state_id': 26, 'district_id': 474},
     '1287143551': {'state_id': 26, 'district_id': 456},
-    '1223213833': {'state_id': 26, 'district_id': 460},
+    '1540220438': {'state_id': 26, 'district_id': 460},
     '1225302829': {'state_id': 26, 'district_id': 462},
     '1302631546': {'state_id': 26, 'district_id': 454},
     '1483515512': {'state_id': 26, 'district_id': 453},
@@ -88,7 +88,7 @@ entity_object = {
     '1230461833': {"district_id":289,"state_id":16},
     '1194665890': {"district_id":264,"state_id":16},
     '1400831953': {"district_id":273,"state_id":16},
-    '1471693088': {"district_id":274,"state_id":16},
+    ## '1471693088': {"district_id":274,"state_id":16},
     '1379459105': {"district_id":276,"state_id":16},
     '1346379632': {"district_id":270,"state_id":16},
     '1481737560': {"district_id":269,"state_id":16},
@@ -107,7 +107,7 @@ entity_object = {
     '1283779031': {"district_id":283,"state_id":16},
     '1174895370': {"district_id":280,"state_id":16},
     '1210755328': {"district_id":284,"state_id":16},
-    '1489132122': {"district_id":292,"state_id":16},
+    ## '1489132122': {"district_id":292,"state_id":16},
     '1213319051': {"district_id":279,"state_id":16},
     '1300650136': {"district_id":278,"state_id":16},
     '1275672800': {"district_id":271,"state_id":16},
@@ -125,7 +125,19 @@ months_integer_values_dict = {
     'Sep': 9,
     'Oct': 10,
     'Nov': 11,
-    'Dec': 12
+    'Dec': 12,
+    'January': 1,
+    'February': 2,
+    'March': 3,
+    'April': 4,
+    'May': 5,
+    'June': 6,
+    'July': 7,
+    'August': 8,
+    'September': 9,
+    'October': 10,
+    'November': 11,
+    'December': 12,
 }
 
 # print("CUrrent entity: ", entity_object['1458101449']['state_id'])
@@ -143,7 +155,8 @@ data_dict = {
 api_id = 5446669
 api_hash = '45a721b995318b63052fc3a1c578fbf8'
 
-client = TelegramClient('slot_tracker', api_id, api_hash)
+
+client =  TelegramClient('slot_tracker', api_id, api_hash)
 
 client.start()
 client.get_dialogs()
@@ -374,6 +387,124 @@ def parse_message_general_logic(message):
     
     return parsed_data_list
 
+def parsing_logic_for_new_message_structure(message_string):
+    
+    parsed_data_list = []
+    parsed_data = {
+        'event_details_json': {
+            'sessions': []
+        }
+    }
+
+
+    splitted_raw_message = message_string.split("\n")
+    print("Splitted message: ", splitted_raw_message)
+
+    for item in splitted_raw_message:
+
+        if item == '':
+            continue
+
+        if 'Center Name' in item or 'Centre Name' in item:
+
+            center_name_start_pos = re.search(r'[:]', item).start() + 2
+            parsed_data['center_name'] = item[center_name_start_pos:]
+            # print("Parsed Center name: ", parsed_data['center_name'])
+
+        
+
+
+        if re.search(r'Vaccine:', item):
+
+            vaccine_name_start_pos = re.search(r'[:]', item).start() + 2
+            parsed_data['vaccine'] = item[vaccine_name_start_pos:]
+            parsed_data['available_capacity_dose1'] = 0
+            parsed_data['available_capacity_dose2'] = 0
+            if re.search(r'\(', item):
+                content_inside_parenthesis = re.search(r'\((.*?)\)',item).group(1)
+                if content_inside_parenthesis == '1st Dose':
+                    parsed_data['available_capacity_dose1'] = 1
+
+
+                if content_inside_parenthesis == '2nd Dose':
+                    parsed_data['available_capacity_dose2'] = 1
+
+        if 'Pincode' in  item:
+
+            parsed_data['unique_key'] = True
+            pincode_start_pos = re.search(r'[:]', item).start() + 2
+            parsed_data["pincode"] = item[pincode_start_pos:] 
+
+    
+        if re.search(r"Date", item):
+
+            date_start_pos = re.search(r'[:]', item).start() + 2
+            date = item[date_start_pos:]
+            splitted_date = date.split(" ")
+            if len(splitted_date) == 3:
+                date = int(splitted_date[0])
+                month = months_integer_values_dict[splitted_date[1]]
+                year = int(splitted_date[-1])
+                parsed_data['event_timestamp'] = int(datetime(year, month, date, 00, 00, 00).timestamp()*1000)
+
+            else:
+                date_string = re.search(r'^[a-zA-Z]+\s\d+', date)
+                # date = int(splitted_date[-1])
+                date_start_pos = date_string.start()
+                date_end_pos = date_string.end()
+                splitted_date_string = date[date_start_pos: date_end_pos].split(" ")
+                print("splitted_date_string: ", splitted_date_string)
+                month = months_integer_values_dict[splitted_date_string[0]]
+                date = splitted_date_string[-1]
+                print("MOnth parsed: ", month)
+                print("Date parsed: ", date)
+                parsed_data['event_timestamp'] = int(datetime(datetime.now().year, month, int(date), 00, 00, 00).timestamp()*1000)
+
+        
+        if re.search(r'Available slots' , item):
+            slots_quantity = int(item[re.search(r'[:]', item).start() + 2:])
+            
+            if parsed_data['available_capacity_dose1'] == 1:
+                parsed_data['available_capacity_dose1'] = slots_quantity
+            
+            if parsed_data['available_capacity_dose2'] == 1:
+                parsed_data['available_capacity_dose2'] = slots_quantity
+        
+        if re.search(r'Dose 1 slots:' , item):
+            dose_quantity_start_pos = re.search(r'[:]', item).start() + 2
+            parsed_data['available_capacity_dose1'] = int(item[dose_quantity_start_pos:])
+
+        
+        if re.search(r'Dose 2 slots:' , item):
+            dose_quantity_start_pos = re.search(r'[:]', item).start() + 2
+            parsed_data['available_capacity_dose2'] = int(item[dose_quantity_start_pos:])
+
+
+        if re.search(r'Cost' , item):
+            if 'Free' in item:
+                parsed_data['cost'] = 'Free'
+            elif 'Paid' in item:
+                parsed_data['cost'] = 'No information'
+            else:
+                cost_detail_pos = re.search(r'[0-9]+', item)
+                print("cost_detail_pos: ", cost_detail_pos.start())
+                cost_detail = item[cost_detail_pos.start(): cost_detail_pos.end()]
+                print("Cost_detail: ", cost_detail)
+                splitted_cost_detail = cost_detail.split(" ")
+                parsed_data['cost'] = int(cost_detail)
+        else:
+            parsed_data['cost'] = 'No information'
+
+        
+    parsed_data['event_details_json']['sessions'].append({'timestamp': parsed_data['event_timestamp'], 'available_capacity_dose1': parsed_data['available_capacity_dose1'], 
+                                            'available_capacity_dose2': parsed_data['available_capacity_dose2'], 'available_capacity': (parsed_data['available_capacity_dose1'] + parsed_data['available_capacity_dose2']), 'cost': parsed_data['cost'], 
+                                            'vaccine': parsed_data['vaccine']})
+    
+    parsed_data_list.append(parsed_data)
+
+    print("Parsed data list: ", parsed_data_list)
+    print("Parsed data list len: ", len(parsed_data_list))
+    return parsed_data_list
 
 
 def parse_message_for_bbmp(message):
@@ -381,11 +512,22 @@ def parse_message_for_bbmp(message):
         return parse_message_for_bbmp_format1(message)
     return []
 
-def parse_message(message, district_id):
+def parsing_logic_for_old_message_structure(message, district_id):
+
     if district_id == 294: # bbmp district id
         return parse_message_for_bbmp(message)
     else:
         return parse_message_general_logic(message)
+
+def parse_message(message, district_id):
+
+    if ('Center Name' in message) or ('Centre Name' in message):
+
+        return parsing_logic_for_new_message_structure(message)
+    else:
+
+        return parsing_logic_for_old_message_structure(message, district_id)
+    
 
 
 # parse_message_from_db_records()
@@ -532,13 +674,18 @@ def insert_slot_availability_events_for_all_districts(minimum_timestamp):
 
 def update_for_last_n_days(days):
     tod = datetime.now()
-    d = timedelta(days = days)
+    d = timedelta(days= days)
     a = tod - d
+    print()
+    # minday = timedelta(days = mindays)
+    # maxday = timedelta(days = maxdays)
+    # mina = tod - minday
+    # maxa = tod - maxday
 
-    insert_data_for_all_districts(500*days)
+    # insert_data_for_all_districts(1000*days)
     insert_slot_availability_events_for_all_districts(a)
 
-# update_for_last_n_days(2)
+update_for_last_n_days(4)
 
             
             
@@ -596,7 +743,7 @@ async def handler(event):
     event_str = str(event)
     peer_id = event.message.peer_id
     print("Event message: ", event.message)
-    process_message_of_live_event_and_insert_into_raw_messages_table(event.message)
+    # process_message_of_live_event_and_insert_into_raw_messages_table(event.message)
 
 
 client.run_until_disconnected()
