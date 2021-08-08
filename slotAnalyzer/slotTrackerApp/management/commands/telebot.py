@@ -488,14 +488,15 @@ def parsing_logic_for_new_message_structure(message_string):
             elif 'Paid' in item:
                 parsed_data['cost'] = 'No information'
             elif re.search(r'\d', item):
-                parsed_data['cost'] = 'No information'
-            else:
                 cost_detail_pos = re.search(r'[0-9]+', item)
                 print("cost_detail_pos: ", cost_detail_pos.start())
                 cost_detail = item[cost_detail_pos.start(): cost_detail_pos.end()]
                 print("Cost_detail: ", cost_detail)
                 splitted_cost_detail = cost_detail.split(" ")
                 parsed_data['cost'] = int(cost_detail)
+            else:
+                parsed_data['cost'] = 'No information'
+                
         else:
             parsed_data['cost'] = 'No information'
 
@@ -682,7 +683,8 @@ def update_for_last_n_days(days):
     tod = datetime.now()
     d = timedelta(days= days)
     a = tod - d
-    print()
+    print("a: ", a)
+    x = input()
     # minday = timedelta(days = mindays)
     # maxday = timedelta(days = maxdays)
     # mina = tod - minday
@@ -691,7 +693,7 @@ def update_for_last_n_days(days):
     # insert_data_for_all_districts(1000*days)
     insert_slot_availability_events_for_all_districts(a)
 
-update_for_last_n_days(64)
+update_for_last_n_days(26)
 
             
             
